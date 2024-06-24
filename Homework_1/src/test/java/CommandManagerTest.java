@@ -1,13 +1,9 @@
-import org.example.command.BaseCommandAbs;
-import org.example.command.Create;
 import org.example.enumManagment.CommandNameEnum;
 import org.example.managment.ChamberManager;
 import org.example.managment.CommandManager;
-import org.example.managment.UserManager;
-import org.example.model.Chamber;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -17,30 +13,22 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
-import java.util.Scanner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("Тесты для управляющего командами класса ")
 public class CommandManagerTest {
     @Mock
     private ChamberManager mockChamberManager;
-    @Mock
-    private UserManager mockUserManager;
-    @Mock
-    private Chamber mockChamber;
 
-
-    private UserManager realUserManager = new UserManager();
-    private CommandManager commandManager = new CommandManager();
-    private ChamberManager realChamberManager = new ChamberManager();
-    private Chamber chamber = new Chamber();
-
+    private final CommandManager commandManager = new CommandManager();
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
+    @DisplayName("Проверка регистрации команд для пользователя")
     @Test
     public void testCommandManagerRegisterCommands() {
         assertThat(commandManager.getCommandTable().isEmpty()).isTrue();
@@ -48,7 +36,7 @@ public class CommandManagerTest {
         commandManager.registerCommands();
         assertThat(commandManager.getCommandTable().size()).isEqualTo(8);
     }
-
+    @DisplayName("Проверка работы главного приложения на основе команды Help")
     @Test
     public void testCommandManagerRunHelp() {
         String waitingAnswer_1 = "Неизвестная команда";
@@ -65,7 +53,6 @@ public class CommandManagerTest {
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
 
-//        BaseCommandAbs.setSc(new Scanner(System.in));
         assertThat(commandManager.getCommandTable().isEmpty()).isTrue();
         commandManager.registerChambers(mockChamberManager);
         commandManager.registerCommands();

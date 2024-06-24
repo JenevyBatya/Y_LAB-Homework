@@ -1,15 +1,12 @@
 import org.example.command.BaseCommandAbs;
 import org.example.command.ExpertMode;
-import org.example.command.Help;
-import org.example.command.Logout;
-import org.example.enumManagment.CommandNameEnum;
 import org.example.enumManagment.ResponseEnum;
 import org.example.managment.ChamberManager;
 import org.example.managment.GettingBackToMain;
 import org.example.managment.ResultResponse;
 import org.example.managment.UserManager;
-import org.example.model.Chamber;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -24,17 +21,15 @@ import java.util.Scanner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("Тесты для административного класса для управления состоянием аудитории")
 public class ExpertModeTest {
     @Mock
     private ChamberManager mockChamberManager;
     @Mock
     private UserManager mockUserManager;
-    @Mock
-    private Chamber mockChamber;
 
-    private UserManager realUserManager = new UserManager();
-    private ChamberManager realChamberManager = new ChamberManager();
-    private Chamber chamber = new Chamber();
+    private final UserManager realUserManager = new UserManager();
+    private final ChamberManager realChamberManager = new ChamberManager();
 
     @InjectMocks
     private ExpertMode expertMode;
@@ -44,6 +39,7 @@ public class ExpertModeTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    @DisplayName("Проверка поведения команды, если пользователь не авторизован")
     @Test
     public void testExpertModeWhenNotAuthorized() {
         expertMode = new ExpertMode(mockChamberManager, mockUserManager);
@@ -52,6 +48,7 @@ public class ExpertModeTest {
         assertThat(result.getResponse()).isEqualTo(ResponseEnum.NO_AUTHORIZATION_YET);
     }
 
+    @DisplayName("Проверка поведения команды, если пользователь не администратор")
     @Test
     public void testExpertModeWhenAuthorizedAndNotAdmin() {
         realUserManager.authorizing("b", "b");
@@ -61,6 +58,7 @@ public class ExpertModeTest {
         assertThat(result.getResponse()).isEqualTo(ResponseEnum.ACCESS_DENIED);
     }
 
+    @DisplayName("Проверка поведения команды при регистрации новой аудитории")
     @Test
     public void testExpertModeWhenAuthorizedAddChamber() throws GettingBackToMain {
         realUserManager.authorizing("a", "a");
@@ -84,6 +82,7 @@ public class ExpertModeTest {
         assertThat(realChamberManager.getChamberList().size()).isEqualTo(5);
     }
 
+    @DisplayName("Проверка поведения команды при прямом удалении существующей аудитории")
     @Test
     public void testExpertModeWhenAuthorizedDeleteChamber() throws GettingBackToMain {
         realUserManager.authorizing("a", "a");
@@ -105,7 +104,7 @@ public class ExpertModeTest {
         assertThat(result.getResponse()).isEqualTo(ResponseEnum.SUCCESS_DELETE_CHAMBER);
         assertThat(realChamberManager.getChamberList().size()).isEqualTo(3);
     }
-
+    @DisplayName("Проверка поведения команды при удалении существующей аудитории через основной интерфейс")
     @Test
     public void testExpertModeAction() throws GettingBackToMain {
         realUserManager.authorizing("a", "a");

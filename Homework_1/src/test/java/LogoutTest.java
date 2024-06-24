@@ -1,11 +1,10 @@
-import org.example.command.Delete;
 import org.example.command.Logout;
 import org.example.enumManagment.ResponseEnum;
 import org.example.managment.ChamberManager;
 import org.example.managment.ResultResponse;
 import org.example.managment.UserManager;
-import org.example.model.Chamber;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -13,17 +12,14 @@ import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("Тесты для класса выхода из учетной записи")
 public class LogoutTest {
     @Mock
     private ChamberManager mockChamberManager;
     @Mock
     private UserManager mockUserManager;
-    @Mock
-    private Chamber mockChamber;
 
-    private UserManager realUserManager = new UserManager();
-    private ChamberManager realChamberManager = new ChamberManager();
-    private Chamber chamber = new Chamber();
+    private final UserManager realUserManager = new UserManager();
 
     @InjectMocks
     private Logout logoutCommand;
@@ -32,7 +28,7 @@ public class LogoutTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
     }
-
+    @DisplayName("Проверка поведения команды, если пользователь не авторизован")
     @Test
     public void testLogoutWhenNotAuthorized() {
         logoutCommand = new Logout(mockChamberManager, mockUserManager);
@@ -40,6 +36,7 @@ public class LogoutTest {
         assertThat(result).isNotNull();
         assertThat(result.getResponse()).isEqualTo(ResponseEnum.NO_AUTHORIZATION_YET);
     }
+    @DisplayName("Проверка поведения команды при успешном выходе из учетной записи")
     @Test
     public void testLogoutWhenAuthorized() {
         realUserManager.authorizing("b","b");

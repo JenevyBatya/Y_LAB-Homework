@@ -1,11 +1,9 @@
 import org.example.command.Authorization;
 import org.example.command.BaseCommandAbs;
-import org.example.command.Create;
 import org.example.enumManagment.ResponseEnum;
 import org.example.managment.ChamberManager;
 import org.example.managment.ResultResponse;
 import org.example.managment.UserManager;
-import org.example.model.Chamber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,17 +16,12 @@ import java.util.Scanner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("Тесты для класса авторизации пользователя")
 public class AuthorizationTest {
     @Mock
     private ChamberManager mockChamberManager;
-    @Mock
-    private UserManager mockUserManager;
-    @Mock
-    private Chamber mockChamber;
 
-    private UserManager realUserManager = new UserManager();
-    private ChamberManager realChamberManager = new ChamberManager();
-    private Chamber chamber = new Chamber();
+    private final UserManager realUserManager = new UserManager();
 
     @InjectMocks
     private Authorization authorizationCommand;
@@ -38,6 +31,7 @@ public class AuthorizationTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    @DisplayName("Проверка поведения команды, если пользователь не авторизован")
     @Test
     public void testAuthWhenNotAuthorized() {
 
@@ -50,16 +44,18 @@ public class AuthorizationTest {
         assertThat(result).isNotNull();
         assertThat(result.getResponse()).isEqualTo(ResponseEnum.SUCCESS_AUTH);
     }
-    @DisplayName("")
+
+    @DisplayName("Проверка поведения команды, если пользователь авторизован")
     @Test
     public void testAuthWhenAuthorized() {
-        realUserManager.authorizing("b","b");
+        realUserManager.authorizing("b", "b");
         authorizationCommand = new Authorization(mockChamberManager, realUserManager);
         ResultResponse result = authorizationCommand.action();
         assertThat(result).isNotNull();
         assertThat(result.getResponse()).isEqualTo(ResponseEnum.ALREADY_AUTHORIZED);
     }
-    @DisplayName("Проверка команды для отмены")
+
+    @DisplayName("Проверка поведения команды при отмене")
     @Test
     public void testAuthBack() {
 

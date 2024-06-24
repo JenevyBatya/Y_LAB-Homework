@@ -3,38 +3,32 @@ import org.example.command.Create;
 import org.example.enumManagment.ResponseEnum;
 import org.example.managment.*;
 import org.example.model.Chamber;
-import org.junit.jupiter.api.*;
-import org.mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-
-
+@DisplayName("Тесты для класса резервации мест и залов")
 public class CreateTest {
     @Mock
     private ChamberManager mockChamberManager;
     @Mock
     private UserManager mockUserManager;
-    @Mock
-    private Chamber mockChamber;
 
     String formatterBookPattern = "dd.MM.yyyy HH.mm";
-    String formatterPeriodPattern = "dd.MM.yyyy";
-    DateTimeFormatter formatterBook = DateTimeFormatter.ofPattern(formatterBookPattern);
-    DateTimeFormatter formatterPeriod = DateTimeFormatter.ofPattern(formatterPeriodPattern);
-    private UserManager realUserManager = new UserManager();
-    private ChamberManager realChamberManager = new ChamberManager();
-    private Chamber chamber = new Chamber();
-    private CommandManager commandManager = new CommandManager();
+
+    private final UserManager realUserManager = new UserManager();
+    private final ChamberManager realChamberManager = new ChamberManager();
+    private final CommandManager commandManager = new CommandManager();
 
     @InjectMocks
     private Create createCommand;
@@ -44,6 +38,7 @@ public class CreateTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    @DisplayName("Проверка поведения команды, если пользователь не авторизован")
     @Test
     public void testCreateWhenNotAuthorized() {
         createCommand = new Create(mockChamberManager, mockUserManager);
@@ -52,6 +47,7 @@ public class CreateTest {
         assertThat(result.getResponse()).isEqualTo(ResponseEnum.NO_AUTHORIZATION_YET);
     }
 
+    @DisplayName("Проверка поведения команды, если для бронирования недоступна ни одна аудитория")
     @Test
     public void testRoomsOptionsNoRooms() {
         ResultResponse result = createCommand.roomsOption();
@@ -60,6 +56,7 @@ public class CreateTest {
 
     }
 
+    @DisplayName("Проверка поведения команды, если для бронирования доступны аудитории")
     @Test
     public void testRoomsOptionsWithRooms() {
         realChamberManager.registerChambers();
@@ -76,6 +73,7 @@ public class CreateTest {
 
     }
 
+    @DisplayName("Проверка поведения команды при прямом бронировании помещения")
     @Test
     public void testBookOption() throws GettingBackToMain {
         realUserManager.authorizing("a", "a");
@@ -87,19 +85,14 @@ public class CreateTest {
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
 
-
-        //Успешная бронь зала
         BaseCommandAbs.setSc(new Scanner(System.in));
         createCommand = new Create(realChamberManager, realUserManager);
-        ResultResponse resultResponse = createCommand.bookOption(realChamberManager.getChamberList().get(1));
+        createCommand.bookOption(realChamberManager.getChamberList().get(1));
         String wrongFormat = outContent.toString().split("\n")[1];
         assertThat(wrongFormat).isEqualTo(ResponseEnum.WRONG_FORMAT + ". Пожалуйста, следуйте формату: " + formatterBookPattern + " - " + formatterBookPattern);
-        //Пересечение дат брони зала
-
-
-        //Успешная бронь коворкинга
     }
 
+    @DisplayName("Проверка поведения команды при основном бронировании помещения через консоль")
     @Test
     public void testCreateActionBookHall() {
         realUserManager.authorizing("a", "a");
@@ -131,6 +124,7 @@ public class CreateTest {
         assertThat(output.contains(waitingAnswer_2)).isTrue();
     }
 
+    @DisplayName("Проверка поведения команды при просмотре свободных слотов в свободный день")
     @Test
     public void testCreateActionTableFreeDay() {
         realUserManager.authorizing("a", "a");
@@ -163,6 +157,7 @@ public class CreateTest {
 
     }
 
+    @DisplayName("Проверка поведения команды при просмотре свободных слотов в непольностью занятый день")
     @Test
     public void testCreateActionTableNotFreeDay() {
         realUserManager.authorizing("a", "a");
@@ -204,7 +199,6 @@ public class CreateTest {
             createCommand.action();
         } catch (NoSuchElementException e) {
             output = new ArrayList<>(Arrays.asList(outContent.toString().split("\r\n")));
-//            assertThat(output.contains(waitingAnswer_1)).isTrue();
             assertThat(output.contains(waitingAnswer_3)).isTrue();
         }
 

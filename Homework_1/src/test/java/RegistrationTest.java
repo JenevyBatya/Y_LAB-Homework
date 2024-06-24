@@ -1,12 +1,11 @@
-import org.example.command.Authorization;
 import org.example.command.BaseCommandAbs;
 import org.example.command.Registration;
 import org.example.enumManagment.ResponseEnum;
 import org.example.managment.ChamberManager;
 import org.example.managment.ResultResponse;
 import org.example.managment.UserManager;
-import org.example.model.Chamber;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -17,17 +16,12 @@ import java.util.Scanner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("Тесты для класса для регистрации пользователя")
 public class RegistrationTest {
     @Mock
     private ChamberManager mockChamberManager;
-    @Mock
-    private UserManager mockUserManager;
-    @Mock
-    private Chamber mockChamber;
 
-    private UserManager realUserManager = new UserManager();
-    private ChamberManager realChamberManager = new ChamberManager();
-    private Chamber chamber = new Chamber();
+    private final UserManager realUserManager = new UserManager();
 
     @InjectMocks
     private Registration registrationCommand;
@@ -37,6 +31,7 @@ public class RegistrationTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    @DisplayName("Проверка поведения команды при конфликте, что пользователь уже зарегистрирован с такими данными")
     @Test
     public void testRegWhenNotAuthorizedAndAlreadyExist() {
 
@@ -49,6 +44,7 @@ public class RegistrationTest {
         assertThat(result).isNotNull();
         assertThat(result.getResponse()).isEqualTo(ResponseEnum.ALREADY_REGISTRATED);
     }
+    @DisplayName("Проверка поведения команды при успешной регистрации нового пользователя")
     @Test
     public void testRegWhenNotAuthorizedAndNew() {
 
@@ -61,7 +57,7 @@ public class RegistrationTest {
         assertThat(result).isNotNull();
         assertThat(result.getResponse()).isEqualTo(ResponseEnum.SUCCESS_AUTH);
     }
-
+    @DisplayName("Проверка поведения команды, если пользователь уже авторизован")
     @Test
     public void testRegWhenAuthorized() {
         realUserManager.authorizing("b","b");
