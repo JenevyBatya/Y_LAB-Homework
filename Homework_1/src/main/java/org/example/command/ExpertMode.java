@@ -53,7 +53,7 @@ public class ExpertMode extends BaseCommandAbs implements BaseCommand {
         String name = getChamberManager().gettingName().getData();
         String description = getChamberManager().gettingDescription().getData();
         ChamberTypeEnum chamberTypeEnum = getChamberManager().gettingType().getChamberTypeEnum();
-        int amount = Integer.parseInt(getChamberManager().gettingPeopleAmountInChamber().getData());
+        int amount = Integer.parseInt(getChamberManager().gettingAudienceCapacity().getData());
         chamberList.put(num, new Chamber(num, name, description, new HashMap<>(), chamberTypeEnum, amount));
         return new ResultResponse(true, ResponseEnum.SUCCESS_ADD);
     }

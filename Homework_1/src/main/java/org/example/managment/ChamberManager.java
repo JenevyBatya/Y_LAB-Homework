@@ -83,13 +83,13 @@ public class ChamberManager {
         }
     }
 
-    public ResultResponse gettingPeopleAmountInChamber() throws GettingBackToMain {
-        int num;
+    public ResultResponse gettingAudienceCapacity() throws GettingBackToMain {
+        int capacity;
         while (true) {
             try {
                 System.out.println("Введите вместимость коворкинга:");
-                num = Integer.parseInt(commandOrBackOption());
-                if (!chamberList.containsKey(num)) {
+                capacity = Integer.parseInt(commandOrBackOption());
+                if (!chamberList.containsKey(capacity)) {
                     return new ResultResponse(true, ResponseEnum.SUCCESS, String.valueOf(num));
                 } else {
                     System.out.println("Данная аудитория уже доступна для резервации");
