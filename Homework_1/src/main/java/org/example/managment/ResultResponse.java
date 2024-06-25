@@ -63,5 +63,8 @@ public class ResultResponse {
         return chamberTypeEnum;
     }
 
+    public boolean isStatus() {
+        return status;
+    }
 }
 

@@ -21,6 +21,10 @@ import java.util.Map;
 
 import static org.example.enumManagment.HelperNameEnum.*;
 
+/**
+ * Класс Create отвечает за выполнение команды создания брони или получения таблицы занятости аудитории.
+ * Он наследует {@link BaseCommandAbs} и реализует интерфейс {@link BaseCommand}.
+ */
 public class Create extends BaseCommandAbs implements BaseCommand {
     String formatterBookPattern = "dd.MM.yyyy HH.mm";
     String formatterPeriodPattern = "dd.MM.yyyy";
@@ -30,11 +34,21 @@ public class Create extends BaseCommandAbs implements BaseCommand {
     DateTimeFormatter formatterCoworking = DateTimeFormatter.ofPattern(formatterCoworkingPattern);
     HelperNameEnum[] text;
 
+    /**
+     * Конструктор класса Create.
+     *
+     * @param chamberManager объект {@link ChamberManager}, используемый для управления аудиториями.
+     * @param userManager    объект {@link UserManager}, используемый для управления пользователями.
+     */
     public Create(ChamberManager chamberManager, UserManager userManager) {
         super(chamberManager, userManager, Create.class.getName());
     }
 
-
+    /**
+     * Выполняет команду создания брони или получения таблицы занятости аудитории.
+     *
+     * @return объект {@link ResultResponse} с результатом выполнения команды.
+     */
     @Override
     public ResultResponse action() {
         System.out.println(ResponseEnum.ONLY_3_MONTHS);
@@ -103,7 +117,13 @@ public class Create extends BaseCommandAbs implements BaseCommand {
         }
     }
 
-
+    /**
+     * Выполняет создание брони для указанной аудитории.
+     *
+     * @param chamber объект {@link Chamber}, для которого выполняется бронь.
+     * @return объект {@link ResultResponse} с результатом выполнения команды.
+     * @throws GettingBackToMain если происходит возврат к главному меню.
+     */
     public ResultResponse bookOption(Chamber chamber) throws GettingBackToMain {
         LocalDateTime[] dates;
         if (chamber.getChamberTypeEnum().equals(ChamberTypeEnum.HALL)) {
@@ -119,11 +139,14 @@ public class Create extends BaseCommandAbs implements BaseCommand {
 
     }
 
-
+    /**
+     * Возвращает список всех зарегистрированных аудиторий.
+     *
+     * @return объект {@link ResultResponse} с результатом выполнения команды.
+     */
     public ResultResponse roomsOption() {
         StringBuilder answer = new StringBuilder();
         if (chamberList.isEmpty()) {
-//            answer.append("Нет зарегистрированных аудиторий");
             return new ResultResponse(true, ResponseEnum.NO_ROOMS_DETECTED);
         } else {
             for (Map.Entry<Integer, Chamber> chamber : chamberList.entrySet()) {
@@ -217,12 +240,12 @@ public class Create extends BaseCommandAbs implements BaseCommand {
                     if (startDate.getMinute() != 0 || endDate.getMinute() != 0) {
                         throw new IllegalArgumentException();
                     }
-                }else if (formatter.equals(formatterPeriod)){
+                } else if (formatter.equals(formatterPeriod)) {
                     LocalDate startLocalDate = LocalDate.parse(dateParts[0], formatterPeriod);
                     LocalDate endLocalDate = LocalDate.parse(dateParts[1], formatterPeriod);
                     startDate = startLocalDate.atStartOfDay();
                     endDate = endLocalDate.atStartOfDay();
-                }else {
+                } else {
                     startDate = LocalDateTime.parse(dateParts[0], formatter);
                     endDate = LocalDateTime.parse(dateParts[1], formatter);
                 }

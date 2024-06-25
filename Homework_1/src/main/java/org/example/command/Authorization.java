@@ -7,14 +7,28 @@ import org.example.managment.ResultResponse;
 import org.example.managment.UserManager;
 import static org.example.managment.UserManager.*;
 
+/**
+ * Класс Authorization отвечает за выполнение команды авторизации пользователя.
+ * Он наследует {@link BaseCommandAbs} и реализует интерфейс {@link BaseCommand}.
+ */
 public class Authorization extends BaseCommandAbs implements BaseCommand {
 
+    /**
+     * Конструктор класса Authorization.
+     *
+     * @param chamberManager объект {@link ChamberManager}, используемый для управления аудиториями.
+     * @param userManager объект {@link UserManager}, используемый для управления пользователями.
+     */
     public Authorization(ChamberManager chamberManager, UserManager userManager) {
         super(chamberManager, userManager, Authorization.class.getName());
     }
 
-    
 
+    /**
+     * Выполняет авторизацию пользователя.
+     *
+     * @return объект {@link ResultResponse} с результатом выполнения команды.
+     */
     @Override
     public ResultResponse action() {
         if (userManager.isAuthorized()) {

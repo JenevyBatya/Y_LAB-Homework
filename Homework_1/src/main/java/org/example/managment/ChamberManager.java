@@ -16,8 +16,6 @@ public class ChamberManager {
         chamberList.put(2, new Chamber(2, "Поминальный зал", "Хороший зал, душевный, на 50 человек", new HashMap<>(), ChamberTypeEnum.HALL, 50));
         chamberList.put(3, new Chamber(3, "Главный коворкинг", "Основной коворкинг на 200 человек", new HashMap<>(), ChamberTypeEnum.COWORKING, 200));
         chamberList.put(4, new Chamber(4, "Библиотека", "Читальный зал на 70 человек", new HashMap<>(), ChamberTypeEnum.COWORKING, 70));
-
-
     }
 
     public HashMap<Integer, Chamber> getChamberList() {
@@ -39,9 +37,9 @@ public class ChamberManager {
             } catch (NumberFormatException e) {
                 System.out.println(ResponseEnum.WRONG_FORMAT);
             }
-
         }
     }
+
     public ResultResponse gettingNumberToDelete() throws GettingBackToMain {
         int num;
         while (true) {
@@ -53,11 +51,9 @@ public class ChamberManager {
                 } else {
                     System.out.println("Данной аудитории не существует");
                 }
-
             } catch (NumberFormatException e) {
                 System.out.println(ResponseEnum.WRONG_FORMAT);
             }
-
         }
     }
 
@@ -72,10 +68,8 @@ public class ChamberManager {
     }
 
     public ResultResponse gettingType() throws GettingBackToMain {
-        //TODO
         String line;
         while (true) {
-
             System.out.println("Введите тип новой аудитории: Коворкинг, Зал");
             line = commandOrBackOption();
             switch (line) {
@@ -89,7 +83,7 @@ public class ChamberManager {
         }
     }
 
-    public ResultResponse gettingAmount() throws GettingBackToMain {
+    public ResultResponse gettingPeopleAmountInChamber() throws GettingBackToMain {
         int num;
         while (true) {
             try {

@@ -29,9 +29,7 @@ public class BaseCommandAbs {
     public static String commandOrBackOption() throws GettingBackToMain {
         String line = sc.nextLine();
         if (line.equals("Back")) {
-//            System.out.println("Возвращаемся в главное меню. Введите команду (для помощи пропишите Help)");
             throw new GettingBackToMain();
-
         } else {
             return line;
         }
