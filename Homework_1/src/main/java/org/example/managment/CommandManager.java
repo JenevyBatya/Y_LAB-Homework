@@ -32,8 +32,6 @@ public class CommandManager {
             Liquibase liquibase = new Liquibase("db.changelog/changelog.xml", new ClassLoaderResourceAccessor(), database);
             liquibase.update();
             System.out.println("миграция успешна");
-        } catch (DatabaseException e) {
-            throw new RuntimeException(e);
         } catch (LiquibaseException e) {
             throw new RuntimeException(e);
         }

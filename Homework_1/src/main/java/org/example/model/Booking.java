@@ -6,9 +6,18 @@ import java.time.LocalDateTime;
 public class Booking implements Cloneable {
     private static int id = 0;
     private User user;
+    private int chamberId;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private int chamberNumber;
+
+    public int getChamberId() {
+        return chamberId;
+    }
+
+    public void setChamberId(int chamberId) {
+        this.chamberId = chamberId;
+    }
 
     public void upId() {
         id++;
@@ -37,6 +46,7 @@ public class Booking implements Cloneable {
     public int getChamberNumber() {
         return chamberNumber;
     }
+
 
     public Booking(User user, LocalDateTime startDate, LocalDateTime endDate, int chamberNumber) {
         this.user = user;

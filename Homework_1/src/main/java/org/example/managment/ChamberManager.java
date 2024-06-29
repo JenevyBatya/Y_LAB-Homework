@@ -48,15 +48,16 @@ public class ChamberManager {
 
     public ResultResponse chamberExists(int num) throws SQLException {
         int count = 0;
-        String sql = "SELECT number FROM example.chamber WHERE number = ?";
+        String sql = "SELECT id, number FROM example.chamber WHERE number = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setInt(1, num);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-
+                int id = -1;
                 while (resultSet.next()) {
                     count++;
+                    id = resultSet.getInt("id");
                 }
-                return new ResultResponse(count > 0, ResponseEnum.SUCCESS);
+                return new ResultResponse(count > 0, ResponseEnum.TEXT, String.valueOf(id));
             }
         }
     }

@@ -24,6 +24,7 @@ import java.util.Map;
 
 import static org.example.enumManagment.HelperNameEnum.*;
 import static org.example.managment.ConnectionManager.connection;
+import static org.example.model.Chamber.add;
 
 /**
  * Класс Create отвечает за выполнение команды создания брони или получения таблицы занятости аудитории.
@@ -87,10 +88,9 @@ public class Create extends BaseCommandAbs implements BaseCommand {
             } catch (IllegalAccessException e) {
                 return new ResultResponse(true, ResponseEnum.NO_AUTHORIZATION_YET);
             }
-
-            if (getChamberManager().chamberExists(num).isStatus()) { //Если есть аудитория
+            ResultResponse response =getChamberManager().chamberExists(num);
+            if (response.isStatus()) { //Если есть аудитория
                 while (true) {
-//                    Chamber chamber = chamberList.get(num);
                     text = new HelperNameEnum[]{Table, Book};
                     for (HelperNameEnum helper : text) {
                         System.out.println(helper + ": " + helper.getText());
@@ -99,8 +99,8 @@ public class Create extends BaseCommandAbs implements BaseCommand {
                     try {
                         line = commandOrBackOption();
                         resultResponse = switch (line) {
-                            case "Book" -> bookOption(num);
-                            case "Table" -> tableOption(num);
+                            case "Book" -> bookOption(Integer.parseInt(response.getData()));
+                            case "Table" -> tableOption(Integer.parseInt(response.getData()));
                             default -> new ResultResponse(false, ResponseEnum.UNKNOWN_COMMAND);
                         };
                     } catch (GettingBackToMain e) {
@@ -128,7 +128,7 @@ public class Create extends BaseCommandAbs implements BaseCommand {
      * @return объект {@link ResultResponse} с результатом выполнения команды.
      * @throws GettingBackToMain если происходит возврат к главному меню.
      */
-    public ResultResponse bookOption(int num) throws GettingBackToMain, SQLException {
+    public ResultResponse bookOption(int chamber_id) throws GettingBackToMain, SQLException {
         LocalDateTime[] dates;
         String sql = "SELECT type FROM example.chamber WHERE number = ?";
         PreparedStatement ps = connection.prepareStatement(sql);
@@ -142,8 +142,8 @@ public class Create extends BaseCommandAbs implements BaseCommand {
 
         LocalDateTime startDate = dates[0];
         LocalDateTime endDate = dates[1];
-        Booking booking = new Booking(userManager.getUser(), startDate, endDate, num);
-        return chamber.add(booking);
+        Booking booking = new Booking(userManager.getUser(), startDate, endDate, chamber_id);
+        return add(booking);
 
     }
 

@@ -4,28 +4,34 @@ import org.example.enumManagment.ChamberTypeEnum;
 import org.example.enumManagment.ResponseEnum;
 import org.example.managment.ResultResponse;
 
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static org.example.managment.ConnectionManager.connection;
+
 public class Chamber {
     private final int number;
     private final String name;
     private final String description;
-    private final HashMap<LocalDate, ArrayList<Booking>> timeTable;
-    private final LocalDate today = LocalDate.now();
-    private final LocalDate plusThreeMonthsDay = today.plusMonths(3);
-    private final ChamberTypeEnum chamberTypeEnum;
-    private final HashMap<LocalDate, HashMap<LocalDateTime, Integer>> coworkingTimeSlot = new HashMap<>();
+    private static HashMap<LocalDate, ArrayList<Booking>> timeTable = null;
+    private static final LocalDate today = LocalDate.now();
+    private static final LocalDate plusThreeMonthsDay = today.plusMonths(3);
+    private static ChamberTypeEnum chamberTypeEnum = null;
+    private static final HashMap<LocalDate, HashMap<LocalDateTime, Integer>> coworkingTimeSlot = new HashMap<>();
 
     public Chamber(int number, String name, String description, HashMap<LocalDate, ArrayList<Booking>> timeTable, ChamberTypeEnum chamberTypeEnum, int peopleAmount) {
         this.number = number;
         this.name = name;
         this.description = description;
-        this.timeTable = timeTable;
-        this.chamberTypeEnum = chamberTypeEnum;
+        Chamber.timeTable = timeTable;
+        Chamber.chamberTypeEnum = chamberTypeEnum;
 
         LocalDate currentDay = LocalDate.now();
         if (chamberTypeEnum == ChamberTypeEnum.HALL) {
@@ -79,8 +85,8 @@ public class Chamber {
         return coworkingTimeSlot;
     }
 
-    public ResultResponse add(Booking newBooking) {
-        ResultResponse resultResponse = new ResultResponse();
+    public static ResultResponse add(Booking newBooking) {
+        ResultResponse resultResponse;
 
         if (isBookingDateInvalid(newBooking)) {
             return createErrorResponse(ResponseEnum.WRONG_DATA);
@@ -93,30 +99,34 @@ public class Chamber {
         }
 
         if (resultResponse.isStatus()) {
-            newBooking.getUser().addBooking(newBooking);
+            try {
+                addBookingDB(newBooking);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         return resultResponse;
     }
 
-    private boolean isBookingDateInvalid(Booking newBooking) {
+    private static boolean isBookingDateInvalid(Booking newBooking) {
         LocalDate startDate = newBooking.getStartDate().toLocalDate();
         LocalDate endDate = newBooking.getEndDate().toLocalDate();
         return startDate.isBefore(today) || endDate.isAfter(plusThreeMonthsDay);
     }
 
-    private ResultResponse createErrorResponse(ResponseEnum responseEnum) {
+    private static ResultResponse createErrorResponse(ResponseEnum responseEnum) {
         ResultResponse resultResponse = new ResultResponse();
         resultResponse.setStatus(false);
         resultResponse.setResponse(responseEnum);
         return resultResponse;
     }
 
-    private boolean isChamberTypeHall() {
+    private static boolean isChamberTypeHall() {
         return chamberTypeEnum == ChamberTypeEnum.HALL;
     }
 
-    private ResultResponse handleHallBooking(Booking newBooking) {
+    private static ResultResponse handleHallBooking(Booking newBooking) {
         if (isHallBookingOccupied(newBooking)) {
             return createErrorResponse(ResponseEnum.OCCUPIED);
         }
@@ -129,12 +139,14 @@ public class Chamber {
         return resultResponse;
     }
 
-    private boolean isHallBookingOccupied(Booking newBooking) {
+    private static boolean isHallBookingOccupied(Booking newBooking) throws SQLException {
         LocalDate startDate = newBooking.getStartDate().toLocalDate();
         LocalDate endDate = newBooking.getEndDate().toLocalDate();
         LocalDate date = startDate;
-
+        String sql = "SELECT ";
+        PreparedStatement ps = connection.prepareStatement(sql);
         while (!date.isAfter(endDate)) {
+
             ArrayList<Booking> bookings = timeTable.get(date);
             if (bookings != null) {
                 for (Booking booking : bookings) {
@@ -149,7 +161,7 @@ public class Chamber {
         return false;
     }
 
-    private void addHallBookings(Booking newBooking) {
+    private static void addHallBookings(Booking newBooking) {
         LocalDate startDate = newBooking.getStartDate().toLocalDate();
         LocalDate endDate = newBooking.getEndDate().toLocalDate();
         LocalDate date = startDate;
@@ -175,7 +187,7 @@ public class Chamber {
         }
     }
 
-    private ResultResponse handleCoworkingBooking(Booking newBooking) {
+    private static ResultResponse handleCoworkingBooking(Booking newBooking) {
         if (isCoworkingBookingOccupied(newBooking)) {
             return createErrorResponse(ResponseEnum.OCCUPIED);
         }
@@ -188,7 +200,7 @@ public class Chamber {
         return resultResponse;
     }
 
-    private boolean isCoworkingBookingOccupied(Booking newBooking) {
+    private static boolean isCoworkingBookingOccupied(Booking newBooking) {
         LocalDate startDate = newBooking.getStartDate().toLocalDate();
         LocalDate endDate = newBooking.getEndDate().toLocalDate();
         LocalDate date = startDate;
@@ -212,7 +224,7 @@ public class Chamber {
         return false;
     }
 
-    private void addCoworkingBookings(Booking newBooking) {
+    private static void addCoworkingBookings(Booking newBooking) {
         LocalDateTime startDateTime = newBooking.getStartDate();
         LocalDateTime endDateTime = newBooking.getEndDate();
         LocalDate startDate = newBooking.getStartDate().toLocalDate();
@@ -235,7 +247,7 @@ public class Chamber {
         }
     }
 
-    private void addBookingForCoworkingDay(LocalDateTime startDateTime, LocalDateTime endDateTime, LocalDate date, HashMap<LocalDateTime, Integer> coworkingCurrentDateTimeSlots) {
+    private static void addBookingForCoworkingDay(LocalDateTime startDateTime, LocalDateTime endDateTime, LocalDate date, HashMap<LocalDateTime, Integer> coworkingCurrentDateTimeSlots) {
         if (date.equals(startDateTime.toLocalDate())) {
             LocalDateTime currentDateTime = startDateTime;
             while (currentDateTime.getHour() != 23) {
@@ -257,5 +269,20 @@ public class Chamber {
             }
             coworkingCurrentDateTimeSlots.computeIfPresent(currentDateTime, (key, value) -> value - 1);
         }
+    }
+
+    private static void addBookingDB(Booking booking) throws SQLException {
+        String sql = "INSERT INTO example.booking (user_id, chamber_id, start_date, end_date, start_time, end_time, is_coworking) VALUES (?,?,?,?,?,?,?)";
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, booking.getUser().getId());
+        ps.setInt(2, booking.getChamberId());
+        ps.setDate(3, Date.valueOf(booking.getStartDate().toLocalDate()));
+        ps.setDate(4, Date.valueOf(booking.getEndDate().toLocalDate()));
+        ps.setTime(5, Time.valueOf(booking.getStartDate().toLocalTime()));
+        ps.setTime(6, Time.valueOf(booking.getEndDate().toLocalTime()));
+        ps.setBoolean(7, false);
+        ps.executeQuery();
+        connection.commit();
+
     }
 }
