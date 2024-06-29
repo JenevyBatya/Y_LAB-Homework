@@ -23,7 +23,8 @@ public enum ResponseEnum {
     UNKNOWN_COMMAND("Неизвестная команда"),
     NO_ROOMS_DETECTED("Нет зарегистрированных аудиторий"),
     NO_AVAILABLE_SLOTS_DETECTED("Отствутсвуют временные слоты для резервации"),
-    ACCESS_DENIED("Доступ закрыт");
+    ACCESS_DENIED("Доступ закрыт"),
+    UNSUCCESS_ADD("Не удалось создать новую аудиторию");
 
     private String text;
 

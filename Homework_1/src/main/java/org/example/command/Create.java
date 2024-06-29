@@ -10,6 +10,9 @@ import org.example.managment.UserManager;
 import org.example.model.Booking;
 import org.example.model.Chamber;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -20,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.example.enumManagment.HelperNameEnum.*;
+import static org.example.managment.ConnectionManager.connection;
 
 /**
  * Класс Create отвечает за выполнение команды создания брони или получения таблицы занятости аудитории.
@@ -50,7 +54,7 @@ public class Create extends BaseCommandAbs implements BaseCommand {
      * @return объект {@link ResultResponse} с результатом выполнения команды.
      */
     @Override
-    public ResultResponse action() {
+    public ResultResponse action() throws SQLException {
         System.out.println(ResponseEnum.ONLY_3_MONTHS);
         ResultResponse resultResponse = null;
         int num = 0;
@@ -84,9 +88,9 @@ public class Create extends BaseCommandAbs implements BaseCommand {
                 return new ResultResponse(true, ResponseEnum.NO_AUTHORIZATION_YET);
             }
 
-            if (chamberList.containsKey(num)) { //Если есть аудитория
+            if (getChamberManager().chamberExists(num).isStatus()) { //Если есть аудитория
                 while (true) {
-                    Chamber chamber = chamberList.get(num);
+//                    Chamber chamber = chamberList.get(num);
                     text = new HelperNameEnum[]{Table, Book};
                     for (HelperNameEnum helper : text) {
                         System.out.println(helper + ": " + helper.getText());
@@ -95,8 +99,8 @@ public class Create extends BaseCommandAbs implements BaseCommand {
                     try {
                         line = commandOrBackOption();
                         resultResponse = switch (line) {
-                            case "Book" -> bookOption(chamber);
-                            case "Table" -> tableOption(chamber);
+                            case "Book" -> bookOption(num);
+                            case "Table" -> tableOption(num);
                             default -> new ResultResponse(false, ResponseEnum.UNKNOWN_COMMAND);
                         };
                     } catch (GettingBackToMain e) {
@@ -124,9 +128,13 @@ public class Create extends BaseCommandAbs implements BaseCommand {
      * @return объект {@link ResultResponse} с результатом выполнения команды.
      * @throws GettingBackToMain если происходит возврат к главному меню.
      */
-    public ResultResponse bookOption(Chamber chamber) throws GettingBackToMain {
+    public ResultResponse bookOption(int num) throws GettingBackToMain, SQLException {
         LocalDateTime[] dates;
-        if (chamber.getChamberTypeEnum().equals(ChamberTypeEnum.HALL)) {
+        String sql = "SELECT type FROM example.chamber WHERE number = ?";
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, num);
+        ResultSet resultSet = ps.executeQuery();
+        if (resultSet.getString("type").equals(ChamberTypeEnum.HALL.toString())) {
             dates = checkDateFormat(formatterBook);
         } else {
             dates = checkDateFormat(formatterCoworking);
@@ -134,7 +142,7 @@ public class Create extends BaseCommandAbs implements BaseCommand {
 
         LocalDateTime startDate = dates[0];
         LocalDateTime endDate = dates[1];
-        Booking booking = new Booking(userManager.getUser(), startDate, endDate, chamber.getNumber());
+        Booking booking = new Booking(userManager.getUser(), startDate, endDate, num);
         return chamber.add(booking);
 
     }

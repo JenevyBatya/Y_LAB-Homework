@@ -1,0 +1,19 @@
+version: '3.9'
+
+services:
+  postgresdb:
+    image: postgres:latest
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: sushka
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: coworking
+
+#      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+#    volumes:
+#      - ./pgdata:/var/lib/postgresql/data/pgdata
+volumes:
+  pgdata:
+    driver: local
