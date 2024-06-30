@@ -11,6 +11,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.TreeMap;
 
 import static org.example.managment.ConnectionManager.connection;
 
@@ -25,8 +26,8 @@ public class Chamber {
     static PreparedStatement ps;
     static String sql;
     private static final HashMap<LocalDate, HashMap<LocalDateTime, Integer>> coworkingTimeSlot = new HashMap<>();
-    static HashMap<Date, ArrayList<TimeSlot>> timeMap = new HashMap<>();
-    static int capacity;
+    //    static HashMap<Date, ArrayList<TimeSlot>> timeMap = new HashMap<>();
+
 
     public Chamber(int number, String name, String description, HashMap<LocalDate, ArrayList<Booking>> timeTable, ChamberTypeEnum chamberTypeEnum, int peopleAmount) {
         this.number = number;
@@ -164,17 +165,18 @@ public class Chamber {
     }
 
     private static ResultResponse handleCoworkingBooking(Booking newBooking) throws SQLException {
-        if (isCoworkingBookingOccupied(newBooking)) {
+        TreeMap<Date, ArrayList<TimeSlot>> timeMap = new TreeMap<>();
+        if (isCoworkingBookingOccupied(newBooking, timeMap)) {
             return createErrorResponse(ResponseEnum.OCCUPIED);
         }
-        addCoworkingBookings(newBooking);
+        addCoworkingBookings(newBooking, timeMap);
         ResultResponse resultResponse = new ResultResponse();
         resultResponse.setStatus(true);
         resultResponse.setResponse(ResponseEnum.SUCCESS_BOOKING);
         return resultResponse;
     }
 
-    private static boolean isCoworkingBookingOccupied(Booking newBooking) throws SQLException {
+    private static boolean isCoworkingBookingOccupied(Booking newBooking, TreeMap<Date, ArrayList<TimeSlot>> timeMap) throws SQLException {
         LocalDateTime startDateTime = newBooking.getStartDate();
         LocalDateTime currentDateTime = newBooking.getStartDate();
         LocalDateTime endDateTime = newBooking.getEndDate();
@@ -189,27 +191,8 @@ public class Chamber {
         ps.setDate(6, Date.valueOf(endDateTime.toLocalDate()));
         ps.setInt(7, endDateTime.getHour());
         ResultSet resultSet = ps.executeQuery();
-        while (resultSet.next()) {
-            TimeSlot timeSlot = new TimeSlot();
-            Date date = resultSet.getDate("date");
-            timeSlot.setDate(date);
-            timeSlot.setHour(resultSet.getInt("hour"));
-            timeSlot.setChamberId(resultSet.getInt("chamber_id"));
-            timeSlot.setBookedSlots(resultSet.getInt("booked_slots"));
-            timeSlot.setTotalSlots(resultSet.getInt("total_slots"));
-            try {
-                timeMap.get(date).add(timeSlot);
-            } catch (NullPointerException e) {
-                ArrayList<TimeSlot> arrayList = new ArrayList<>();
-                arrayList.add(timeSlot);
-                timeMap.put(date, arrayList);
-            }
-
-        }
-        sql = "SELECT capacity FROM example.chamber WHERE id==?";
-        ps = connection.prepareStatement(sql);
-        ps.setInt(1, newBooking.getChamberId());
-        capacity = ps.executeQuery().getInt("capacity");
+        getTimeMapForCoworking(resultSet, timeMap);
+        int capacity = findCapacityOfChamber(newBooking.getChamberId());
         if (capacity <= 0) {
             return true;
         }
@@ -231,7 +214,16 @@ public class Chamber {
         return false;
     }
 
-    private static void addCoworkingBookings(Booking newBooking) throws SQLException {
+    public static int findCapacityOfChamber(int chamberId) throws SQLException {
+        int capacity;
+        sql = "SELECT capacity FROM example.chamber WHERE id==?";
+        ps = connection.prepareStatement(sql);
+        ps.setInt(1, chamberId);
+        capacity = ps.executeQuery().getInt("capacity");
+        return capacity;
+    }
+
+    private static void addCoworkingBookings(Booking newBooking, TreeMap<Date, ArrayList<TimeSlot>> timeMap) throws SQLException {
         LocalDateTime currentDateTime = newBooking.getStartDate();
         LocalDateTime endDateTime = newBooking.getEndDate();
 
@@ -244,43 +236,13 @@ public class Chamber {
                     }
                 }
             } catch (NullPointerException e) {
-                sql = "INSERT INTO example.time_slot (date, hour, chamber_id, booked_slots, total_slots) VALUES (?,?,?,?,?)";
-                ps = connection.prepareStatement(sql);
-                ps.setDate(1, Date.valueOf(currentDateTime.toLocalDate()));
-                ps.setInt(2, currentDateTime.getHour());
-                ps.setInt(3, newBooking.getChamberId());
-                ps.setInt(4, capacity - 1);
-                ps.setInt(5, capacity);
+                putNewDayCoworkingSlots(Date.valueOf(currentDateTime.toLocalDate()), newBooking.getChamberId());
             }
 
             currentDateTime = currentDateTime.plusHours(1);
         }
 
     }
-
-//    private static void addBookingForCoworkingDay(LocalDateTime startDateTime, LocalDateTime endDateTime, LocalDate date, HashMap<LocalDateTime, Integer> coworkingCurrentDateTimeSlots) {
-//        if (date.equals(startDateTime.toLocalDate())) {
-//            LocalDateTime currentDateTime = startDateTime;
-//            while (currentDateTime.getHour() != 23) {
-//                coworkingCurrentDateTimeSlots.computeIfPresent(currentDateTime, (key, value) -> value - 1);
-//                currentDateTime = currentDateTime.plusHours(1);
-//            }
-//            coworkingCurrentDateTimeSlots.computeIfPresent(currentDateTime, (key, value) -> value - 1);
-//        } else if (date.equals(endDateTime.toLocalDate())) {
-//            LocalDateTime currentDateTime = date.atStartOfDay();
-//            while (currentDateTime.isBefore(endDateTime)) {
-//                coworkingCurrentDateTimeSlots.computeIfPresent(currentDateTime, (key, value) -> value - 1);
-//                currentDateTime = currentDateTime.plusHours(1);
-//            }
-//        } else {
-//            LocalDateTime currentDateTime = date.atStartOfDay();
-//            while (currentDateTime.getHour() != 23) {
-//                coworkingCurrentDateTimeSlots.computeIfPresent(currentDateTime, (key, value) -> value - 1);
-//                currentDateTime = currentDateTime.plusHours(1);
-//            }
-//            coworkingCurrentDateTimeSlots.computeIfPresent(currentDateTime, (key, value) -> value - 1);
-//        }
-//    }
 
     private static void addBookingDB(Booking booking) throws SQLException {
         String sql = "INSERT INTO example.booking (user_id, chamber_id, start_date, end_date, start_time, end_time, is_coworking) VALUES (?,?,?,?,?,?,?)";
@@ -296,11 +258,78 @@ public class Chamber {
         connection.commit();
     }
 
-    private static boolean isCoworking(int chamberId) throws SQLException {
+    public static boolean isCoworking(int chamberId) throws SQLException {
         String sql = "SELECT type FROM example.chamber where id=?";
         PreparedStatement ps = connection.prepareStatement(sql);
         ps.setInt(1, chamberId);
         ResultSet resultSet = ps.getResultSet();
         return Objects.equals(resultSet.getString("type"), ChamberTypeEnum.HALL.toString());
+    }
+
+    public static void getTimeMapForCoworking(ResultSet resultSet, TreeMap<Date, ArrayList<TimeSlot>> timeMap) throws SQLException {
+        while (resultSet.next()) {
+            TimeSlot timeSlot = new TimeSlot();
+            Date date = resultSet.getDate("date");
+            timeSlot.setDate(date);
+            timeSlot.setHour(resultSet.getInt("hour"));
+            timeSlot.setChamberId(resultSet.getInt("chamber_id"));
+            timeSlot.setBookedSlots(resultSet.getInt("booked_slots"));
+            timeSlot.setTotalSlots(resultSet.getInt("total_slots"));
+            try {
+                timeMap.get(date).add(timeSlot);
+            } catch (NullPointerException e) {
+                ArrayList<TimeSlot> arrayList = new ArrayList<>();
+                arrayList.add(timeSlot);
+                timeMap.put(date, arrayList);
+            }
+
+        }
+    }
+
+    public static void getTimeMapForHall(ResultSet resultSet, TreeMap<Date, ArrayList<String>> timeMap) throws SQLException {
+        while (resultSet.next()) {
+            Date date = resultSet.getDate("date");
+            String[] startTimeFull = resultSet.getTime("start_time").toString().split(":");
+            String[] endTimeFull = resultSet.getTime("end_time").toString().split(":");
+            int startMinutes = Integer.parseInt(startTimeFull[1]);
+            int endMinutes = Integer.parseInt(endTimeFull[1]);
+            String startTime = startTimeFull[0] + ":" + startMinutes / 10 + startMinutes % 10;
+            String endTime = endTimeFull[0] + ":" + endMinutes / 10 + endMinutes % 10;
+            try {
+                if (!timeMap.get(date).contains(startTime)) {
+                    timeMap.get(date).add(startTime);
+                } else {
+                    timeMap.get(date).remove(startTime);
+                }
+                if (!timeMap.get(date).contains(endTime)) {
+                    timeMap.get(date).add(endTime);
+                } else {
+                    timeMap.get(date).remove(endTime);
+                }
+            } catch (NullPointerException e) {
+                ArrayList<String> arrayList = new ArrayList<>();
+                arrayList.add("00:00");
+                arrayList.add("23:59");
+
+                timeMap.put(date, arrayList);
+            }
+
+        }
+    }
+
+
+    public static void putNewDayCoworkingSlots(Date date, int chamberId) throws SQLException {
+        int capacity = findCapacityOfChamber(chamberId);
+        for (int hour = 0; hour < 24; hour++) {
+            sql = "INSERT INTO example.time_slot (date, hour, chamber_id, booked_slots, total_slots) VALUES (?,?,?,?,?)";
+            ps = connection.prepareStatement(sql);
+            ps.setDate(1, date);
+            ps.setInt(2, hour);
+            ps.setInt(3, chamberId);
+            ps.setInt(4, capacity - 1);
+            ps.setInt(5, capacity);
+            ps.executeQuery();
+            connection.commit();
+        }
     }
 }

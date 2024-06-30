@@ -76,7 +76,6 @@
             <column name="start_time" type="TIME"/>
             <column name="end_time" type="TIME"/>
             <column name="is_coworking" type="BOOLEAN"/>
-<!--            <column name="number_of_slots" type="INTEGER"/>-->
         </createTable>
 
     </changeSet>

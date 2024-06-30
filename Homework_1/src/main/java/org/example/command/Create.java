@@ -9,22 +9,22 @@ import org.example.managment.ResultResponse;
 import org.example.managment.UserManager;
 import org.example.model.Booking;
 import org.example.model.Chamber;
+import org.example.model.TimeSlot;
 
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.example.enumManagment.HelperNameEnum.*;
 import static org.example.managment.ConnectionManager.connection;
-import static org.example.model.Chamber.add;
+import static org.example.model.Chamber.*;
 
 /**
  * Класс Create отвечает за выполнение команды создания брони или получения таблицы занятости аудитории.
@@ -34,10 +34,14 @@ public class Create extends BaseCommandAbs implements BaseCommand {
     String formatterBookPattern = "dd.MM.yyyy HH.mm";
     String formatterPeriodPattern = "dd.MM.yyyy";
     String formatterCoworkingPattern = "dd.MM.yyyy HH";
+    DateTimeFormatter formatterTime = DateTimeFormatter.ofPattern("HH:mm");
     DateTimeFormatter formatterBook = DateTimeFormatter.ofPattern(formatterBookPattern);
     DateTimeFormatter formatterPeriod = DateTimeFormatter.ofPattern(formatterPeriodPattern);
     DateTimeFormatter formatterCoworking = DateTimeFormatter.ofPattern(formatterCoworkingPattern);
     HelperNameEnum[] text;
+    PreparedStatement ps;
+    String sql;
+    ResultSet resultSet;
 
     /**
      * Конструктор класса Create.
@@ -87,54 +91,55 @@ public class Create extends BaseCommandAbs implements BaseCommand {
                 continue;
             } catch (IllegalAccessException e) {
                 return new ResultResponse(true, ResponseEnum.NO_AUTHORIZATION_YET);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-            
-            ResultResponse response = getChamberManager().chamberExists(num);
-            if (response.isStatus()) { //Если есть аудитория
-                while (true) {
-                    text = new HelperNameEnum[]{Table, Book};
-                    for (HelperNameEnum helper : text) {
-                        System.out.println(helper + ": " + helper.getText());
+            try {
+                ResultResponse response = getChamberManager().chamberExists(num);
+                if (response.isStatus()) { //Если есть аудитория
+                    while (true) {
+                        text = new HelperNameEnum[]{Table, Book};
+                        for (HelperNameEnum helper : text) {
+                            System.out.println(helper + ": " + helper.getText());
+                        }
+
+                        try {
+                            line = commandOrBackOption();
+                            resultResponse = switch (line) {
+                                case "Book" -> bookOption(Integer.parseInt(response.getData()));
+                                case "Table" -> tableOption(Integer.parseInt(response.getData()));
+                                default -> new ResultResponse(false, ResponseEnum.UNKNOWN_COMMAND);
+                            };
+                        } catch (GettingBackToMain e) {
+                            break;
+                        } catch (SQLException e) {
+                            throw new RuntimeException(e);
+                        }
+                        if (!resultResponse.getResponse().equals(ResponseEnum.OCCUPIED) && line.equals("Book")) {
+                            return resultResponse;
+                        } else {
+                            resultResponse.printData();
+                        }
                     }
 
-                    try {
-                        line = commandOrBackOption();
-                        resultResponse = switch (line) {
-                            case "Book" -> bookOption(Integer.parseInt(response.getData()));
-                            case "Table" -> tableOption(Integer.parseInt(response.getData()));
-                            default -> new ResultResponse(false, ResponseEnum.UNKNOWN_COMMAND);
-                        };
-                    } catch (GettingBackToMain e) {
-                        break;
-                    }
-                    if (!resultResponse.getResponse().equals(ResponseEnum.OCCUPIED) && line.equals("Book")) {
-                        return resultResponse;
-                    } else {
-                        resultResponse.printData();
-                    }
+
+                } else {
+                    if (flag)
+                        System.out.println("Данная аудитория отстутсвует");
                 }
-
-
-            } else {
-                if (flag)
-                    System.out.println("Данная аудитория отстутсвует");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
+
         }
     }
 
-    /**
-     * Выполняет создание брони для указанной аудитории.
-     *
-     * @param chamber объект {@link Chamber}, для которого выполняется бронь.
-     * @return объект {@link ResultResponse} с результатом выполнения команды.
-     * @throws GettingBackToMain если происходит возврат к главному меню.
-     */
     public ResultResponse bookOption(int chamber_id) throws GettingBackToMain, SQLException {
         LocalDateTime[] dates;
-        String sql = "SELECT type FROM example.chamber WHERE chamber_id = ?";
-        PreparedStatement ps = connection.prepareStatement(sql);
+        sql = "SELECT type FROM example.chamber WHERE chamber_id = ?";
+        ps = connection.prepareStatement(sql);
         ps.setInt(1, chamber_id);
-        ResultSet resultSet = ps.executeQuery();
+        resultSet = ps.executeQuery();
         if (resultSet.getString("type").equals(ChamberTypeEnum.HALL.toString())) {
             dates = checkDateFormat(formatterBook);
         } else {
@@ -153,23 +158,30 @@ public class Create extends BaseCommandAbs implements BaseCommand {
      *
      * @return объект {@link ResultResponse} с результатом выполнения команды.
      */
-    public ResultResponse roomsOption() {
+    public ResultResponse roomsOption() throws SQLException {
         StringBuilder answer = new StringBuilder();
-        if (chamberList.isEmpty()) {
-            return new ResultResponse(true, ResponseEnum.NO_ROOMS_DETECTED);
-        } else {
-            for (Map.Entry<Integer, Chamber> chamber : chamberList.entrySet()) {
-                answer.append("Аудитория ").append(chamber.getKey()).append(". ").append(chamber.getValue().getName()).append(" - ").append(chamber.getValue().getDescription()).append("\n");
-            }
+        sql = "SELECT * FROM example.chamber";
+        ps = connection.prepareStatement(sql);
+        resultSet = ps.executeQuery();
+        int count = 0;
+        while (resultSet.next()) {
+            int number = resultSet.getInt("number");
+            String name = resultSet.getString("name");
+            String description = resultSet.getString("description");
+            String type = resultSet.getString("type");
+            answer.append("Аудитория ").append(number).append(". ").append(name).append(" - ").append(description).append(". ").append(type);
+            count++;
         }
-
+        if (count == 0) {
+            return new ResultResponse(true, ResponseEnum.NO_ROOMS_DETECTED);
+        }
         return new ResultResponse(true, ResponseEnum.TEXT, answer.toString());
     }
 
-    public ResultResponse tableOption(Chamber chamber) throws GettingBackToMain {
+    public ResultResponse tableOption(int chamberId) throws GettingBackToMain, SQLException {
         String line;
         while (true) {
-            text = new HelperNameEnum[]{All, Period};
+            text = new HelperNameEnum[]{Period};
             for (HelperNameEnum helper : text) {
                 System.out.println(helper + ": " + helper.getText());
             }
@@ -179,61 +191,105 @@ public class Create extends BaseCommandAbs implements BaseCommand {
             } catch (GettingBackToMain e) {
                 throw new GettingBackToMain();
             }
-            switch (line) {
-                case "All":
-                    return allOption(chamber);
-                case "Period":
-                    return periodOption(chamber);
-                default:
-                    System.out.println(ResponseEnum.UNKNOWN_COMMAND);
+            if (line.equals("Period")) {
+                return periodOption(chamberId);
+            } else {
+                System.out.println(ResponseEnum.UNKNOWN_COMMAND);
             }
         }
     }
 
 
-    public ResultResponse allOption(Chamber chamber) {
-        return showSlot(chamber.getToday(), chamber.getPlusThreeMonthsDay(), chamber.getTimeTable(), chamber);
-    }
-
-    public ResultResponse periodOption(Chamber chamber) throws GettingBackToMain {
+    public ResultResponse periodOption(int chamberId) throws GettingBackToMain, SQLException {
 
         System.out.println("Напиши даты, слоты в которых вы хотите просмотреть, в формате: dd.mm.yyyy - dd.mm.yyyy");
-
+        StringBuilder answer = new StringBuilder();
         LocalDateTime[] dates = checkDateFormat(formatterPeriod);
         LocalDate startDate = dates[0].toLocalDate();
         LocalDate endDate = dates[1].toLocalDate();
-        LocalDate timeTableStart = chamber.getToday();
-        LocalDate timeTableEnd = chamber.getPlusThreeMonthsDay();
 
-        HashMap<LocalDate, ArrayList<Booking>> timeTable = chamber.getTimeTable();
 
-        if (!startDate.isBefore(timeTableStart) && !startDate.isAfter(timeTableEnd)) { //Если начальная дата в этих 3 месяцах
-            return showSlot(startDate, endDate, timeTable, chamber);
+        if (isCoworking(chamberId)) {
+            TreeMap<Date, ArrayList<TimeSlot>> timeMap = new TreeMap<>();
+            sql = "SELECT * FROM example.time_slot WHERE chamber_id==? AND ?<=date AND date<=?";
+            ps = connection.prepareStatement(sql);
+            ps.setInt(1, chamberId);
+            ps.setDate(2, Date.valueOf(startDate));
+            ps.setDate(3, Date.valueOf(endDate));
+            resultSet = ps.executeQuery();
+            getTimeMapForCoworking(resultSet, timeMap);
 
-        } else if (!endDate.isBefore(chamber.getToday()) && !endDate.isAfter(chamber.getPlusThreeMonthsDay())) { //Если начальная не в них, то конечная - да
-            return showSlot(timeTableStart, endDate, timeTable, chamber);
-        } else if (startDate.isBefore(chamber.getToday()) && endDate.isAfter(chamber.getPlusThreeMonthsDay())) { //если обе даты включают эти три месяца
-            return allOption(chamber);
-        } else { //Если ни одна дата не в отрезке, но отрезок внутри этих дат
-            ResultResponse resultResponse = new ResultResponse();
-            resultResponse.setStatus(false);
-            resultResponse.setResponse(ResponseEnum.NONAVAILABLE_SLOT);
-            return resultResponse;
+            LocalDate currentDate = dates[0].toLocalDate();
+
+            while (!currentDate.isAfter(endDate)) {
+                System.out.println(currentDate);
+                try {
+                    ArrayList<TimeSlot> timeSlots = timeMap.get(Date.valueOf(currentDate));
+                    Collections.sort(timeSlots, new Comparator<TimeSlot>() {
+                        @Override
+                        public int compare(TimeSlot o1, TimeSlot o2) {
+                            return Integer.compare(o1.getHour(), o2.getHour());
+                        }
+                    });
+                    for (TimeSlot timeSlot : timeSlots) {
+                        answer.append(timeSlot.getHour()).append(":00 Свободно ").append(timeSlot.getBookedSlots()).append(" из  ").append(timeSlot.getTotalSlots());
+                    }
+                } catch (NullPointerException e) {
+                    int capacity = findCapacityOfChamber(chamberId);
+                    for (int hour = 0; hour < 24; hour++) {
+                        answer.append(hour).append(":00 Свободно ").append(capacity).append(" из  ").append(capacity);
+                    }
+                }
+                currentDate = currentDate.plusDays(1);
+            }
+
+
+        } else {
+            TreeMap<Date, ArrayList<String>> timeMap = new TreeMap<>();
+            sql = "SELECT * FROM example.booking WHERE chamber_id==? AND ?<=end_date AND start_date<=?";
+            ps = connection.prepareStatement(sql);
+            ps.setInt(1, chamberId);
+            resultSet = ps.executeQuery();
+            getTimeMapForHall(resultSet, timeMap);
+
+            LocalDate currentDate = dates[0].toLocalDate();
+            while (!currentDate.isAfter(endDate)) {
+                answer.append(currentDate);
+                try {
+                    ArrayList<String> timeSlots = timeMap.get(Date.valueOf(currentDate));
+                    timeSlots.sort((o1, o2) -> {
+                        LocalTime time1 = LocalTime.parse(o1, formatterTime);
+                        LocalTime time2 = LocalTime.parse(o2, formatterTime);
+                        return time1.compareTo(time2);
+                    });
+                    for (int i = 0; i < timeSlots.size() - 1; i += 2) {
+                        answer.append(timeSlots.get(i)).append(" - ").append(timeSlots.get(i + 1)).append(", ");
+                    }
+                    answer.append("\n");
+                } catch (NullPointerException e) {
+                    answer.append("Свободно весь день\n");
+                }
+                currentDate = currentDate.plusDays(1);
+            }
+
         }
-
+        return new ResultResponse(true, ResponseEnum.TEXT, answer.toString());
     }
 
     public LocalDateTime[] checkDateFormat(DateTimeFormatter formatter) throws GettingBackToMain {
         String format;
-        if (formatter.equals(formatterBook)) {
-            format = formatterBookPattern;
-        } else if (formatter.equals(formatterCoworking)) {
-            format = formatterCoworkingPattern + ".00";
-        } else {
+        if (formatter.equals(formatterPeriod)) {
             format = formatterPeriodPattern;
+        } else {
+            if (formatter.equals(formatterBook)) {
+                format = formatterBookPattern;
+
+            } else {
+                format = formatterCoworkingPattern + ".00";
+            }
+            System.out.printf("Напиши даты желаемой брони в формате: %s - %s \r\n", format, format);
         }
         //TODO:Coworking time limit with x:00 +++
-        System.out.printf("Напиши даты желаемой брони в формате: %s - %s \r\n", format, format);
         while (true) {
             try {
                 String dates = commandOrBackOption();
