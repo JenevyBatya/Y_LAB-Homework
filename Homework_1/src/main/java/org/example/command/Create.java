@@ -31,17 +31,20 @@ import static org.example.model.Chamber.*;
  * Он наследует {@link BaseCommandAbs} и реализует интерфейс {@link BaseCommand}.
  */
 public class Create extends BaseCommandAbs implements BaseCommand {
-    String formatterBookPattern = "dd.MM.yyyy HH.mm";
-    String formatterPeriodPattern = "dd.MM.yyyy";
-    String formatterCoworkingPattern = "dd.MM.yyyy HH";
-    DateTimeFormatter formatterTime = DateTimeFormatter.ofPattern("HH:mm");
-    DateTimeFormatter formatterBook = DateTimeFormatter.ofPattern(formatterBookPattern);
-    DateTimeFormatter formatterPeriod = DateTimeFormatter.ofPattern(formatterPeriodPattern);
-    DateTimeFormatter formatterCoworking = DateTimeFormatter.ofPattern(formatterCoworkingPattern);
-    HelperNameEnum[] text;
-    PreparedStatement ps;
-    String sql;
-    ResultSet resultSet;
+
+    // Форматы для различных типов дат
+    private final String formatterBookPattern = "dd.MM.yyyy HH.mm";
+    private final String formatterPeriodPattern = "dd.MM.yyyy";
+    private final String formatterCoworkingPattern = "dd.MM.yyyy HH";
+    private final DateTimeFormatter formatterTime = DateTimeFormatter.ofPattern("HH:mm");
+    private final DateTimeFormatter formatterBook = DateTimeFormatter.ofPattern(formatterBookPattern);
+    private final DateTimeFormatter formatterPeriod = DateTimeFormatter.ofPattern(formatterPeriodPattern);
+    private final DateTimeFormatter formatterCoworking = DateTimeFormatter.ofPattern(formatterCoworkingPattern);
+
+    private HelperNameEnum[] text;
+    private PreparedStatement ps;
+    private String sql;
+    private ResultSet resultSet;
 
     /**
      * Конструктор класса Create.
@@ -75,7 +78,7 @@ public class Create extends BaseCommandAbs implements BaseCommand {
                 }
                 System.out.println(HelperNameEnum.Number.getText());
 
-                line = commandOrBackOption(); //Проверка, является ли выходом
+                line = commandOrBackOption(); // Проверка, является ли выходом
                 if (line.equals("Rooms")) {
                     roomsOption().printData();
                 } else {
@@ -96,7 +99,7 @@ public class Create extends BaseCommandAbs implements BaseCommand {
             }
             try {
                 ResultResponse response = getChamberManager().chamberExists(num);
-                if (response.isStatus()) { //Если есть аудитория
+                if (response.isStatus()) { // Если аудитория существует
                     while (true) {
                         text = new HelperNameEnum[]{Table, Book};
                         for (HelperNameEnum helper : text) {
@@ -121,8 +124,6 @@ public class Create extends BaseCommandAbs implements BaseCommand {
                             resultResponse.printData();
                         }
                     }
-
-
                 } else {
                     if (flag)
                         System.out.println("Данная аудитория отстутсвует");
@@ -130,10 +131,15 @@ public class Create extends BaseCommandAbs implements BaseCommand {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-
         }
     }
 
+    /**
+     * Обрабатывает вариант бронирования аудитории.
+     *
+     * @param chamber_id ID аудитории.
+     * @return объект {@link ResultResponse} с результатом выполнения команды.
+     */
     public ResultResponse bookOption(int chamber_id) throws GettingBackToMain, SQLException {
         LocalDateTime[] dates;
         sql = "SELECT type FROM example.chamber WHERE chamber_id = ?";
@@ -150,7 +156,6 @@ public class Create extends BaseCommandAbs implements BaseCommand {
         LocalDateTime endDate = dates[1];
         Booking booking = new Booking(userManager.getUser(), startDate, endDate, chamber_id);
         return add(booking);
-
     }
 
     /**
@@ -178,6 +183,12 @@ public class Create extends BaseCommandAbs implements BaseCommand {
         return new ResultResponse(true, ResponseEnum.TEXT, answer.toString());
     }
 
+    /**
+     * Обрабатывает вариант просмотра таблицы занятости аудитории.
+     *
+     * @param chamberId ID аудитории.
+     * @return объект {@link ResultResponse} с результатом выполнения команды.
+     */
     public ResultResponse tableOption(int chamberId) throws GettingBackToMain, SQLException {
         String line;
         while (true) {
@@ -199,19 +210,22 @@ public class Create extends BaseCommandAbs implements BaseCommand {
         }
     }
 
-
+    /**
+     * Обрабатывает вариант выбора периода для просмотра таблицы занятости аудитории.
+     *
+     * @param chamberId ID аудитории.
+     * @return объект {@link ResultResponse} с результатом выполнения команды.
+     */
     public ResultResponse periodOption(int chamberId) throws GettingBackToMain, SQLException {
-
-        System.out.println("Напиши даты, слоты в которых вы хотите просмотреть, в формате: dd.mm.yyyy - dd.mm.yyyy");
+        System.out.println("Напиши даты, слоты в которых вы хотите просмотреть, в формате: dd.MM.yyyy - dd.MM.yyyy");
         StringBuilder answer = new StringBuilder();
         LocalDateTime[] dates = checkDateFormat(formatterPeriod);
         LocalDate startDate = dates[0].toLocalDate();
         LocalDate endDate = dates[1].toLocalDate();
 
-
         if (isCoworking(chamberId)) {
             TreeMap<Date, ArrayList<TimeSlot>> timeMap = new TreeMap<>();
-            sql = "SELECT * FROM example.time_slot WHERE chamber_id==? AND ?<=date AND date<=?";
+            sql = "SELECT * FROM example.time_slot WHERE chamber_id = ? AND ? <= date AND date <= ?";
             ps = connection.prepareStatement(sql);
             ps.setInt(1, chamberId);
             ps.setDate(2, Date.valueOf(startDate));
@@ -220,33 +234,28 @@ public class Create extends BaseCommandAbs implements BaseCommand {
             getTimeMapForCoworking(resultSet, timeMap);
 
             LocalDate currentDate = dates[0].toLocalDate();
-
             while (!currentDate.isAfter(endDate)) {
                 System.out.println(currentDate);
                 try {
                     ArrayList<TimeSlot> timeSlots = timeMap.get(Date.valueOf(currentDate));
-                    Collections.sort(timeSlots, new Comparator<TimeSlot>() {
-                        @Override
-                        public int compare(TimeSlot o1, TimeSlot o2) {
-                            return Integer.compare(o1.getHour(), o2.getHour());
-                        }
-                    });
+                    timeSlots.sort(Comparator.comparingInt(TimeSlot::getHour));
                     for (TimeSlot timeSlot : timeSlots) {
-                        answer.append(timeSlot.getHour()).append(":00 Свободно ").append(timeSlot.getBookedSlots()).append(" из  ").append(timeSlot.getTotalSlots());
+                        answer.append(timeSlot.getHour()).append(":00 Свободно ")
+                                .append(timeSlot.getBookedSlots()).append(" из  ")
+                                .append(timeSlot.getTotalSlots()).append("\n");
                     }
                 } catch (NullPointerException e) {
                     int capacity = findCapacityOfChamber(chamberId);
                     for (int hour = 0; hour < 24; hour++) {
-                        answer.append(hour).append(":00 Свободно ").append(capacity).append(" из  ").append(capacity);
+                        answer.append(hour).append(":00 Свободно ")
+                                .append(capacity).append(" из  ").append(capacity).append("\n");
                     }
                 }
                 currentDate = currentDate.plusDays(1);
             }
-
-
         } else {
             TreeMap<Date, ArrayList<String>> timeMap = new TreeMap<>();
-            sql = "SELECT * FROM example.booking WHERE chamber_id==? AND ?<=end_date AND start_date<=?";
+            sql = "SELECT * FROM example.booking WHERE chamber_id = ? AND ? <= end_date AND start_date <= ?";
             ps = connection.prepareStatement(sql);
             ps.setInt(1, chamberId);
             resultSet = ps.executeQuery();
@@ -254,7 +263,7 @@ public class Create extends BaseCommandAbs implements BaseCommand {
 
             LocalDate currentDate = dates[0].toLocalDate();
             while (!currentDate.isAfter(endDate)) {
-                answer.append(currentDate);
+                answer.append(currentDate).append("\n");
                 try {
                     ArrayList<String> timeSlots = timeMap.get(Date.valueOf(currentDate));
                     timeSlots.sort((o1, o2) -> {
@@ -271,11 +280,17 @@ public class Create extends BaseCommandAbs implements BaseCommand {
                 }
                 currentDate = currentDate.plusDays(1);
             }
-
         }
         return new ResultResponse(true, ResponseEnum.TEXT, answer.toString());
     }
 
+    /**
+     * Проверяет формат введенных дат и возвращает массив из двух дат.
+     *
+     * @param formatter форматтер для проверки даты.
+     * @return массив из двух дат (начало и конец).
+     * @throws GettingBackToMain если команда указывает на возврат к главному меню.
+     */
     public LocalDateTime[] checkDateFormat(DateTimeFormatter formatter) throws GettingBackToMain {
         String format;
         if (formatter.equals(formatterPeriod)) {
@@ -283,13 +298,12 @@ public class Create extends BaseCommandAbs implements BaseCommand {
         } else {
             if (formatter.equals(formatterBook)) {
                 format = formatterBookPattern;
-
             } else {
                 format = formatterCoworkingPattern + ".00";
             }
             System.out.printf("Напиши даты желаемой брони в формате: %s - %s \r\n", format, format);
         }
-        //TODO:Coworking time limit with x:00 +++
+
         while (true) {
             try {
                 String dates = commandOrBackOption();
@@ -315,78 +329,15 @@ public class Create extends BaseCommandAbs implements BaseCommand {
                     endDate = LocalDateTime.parse(dateParts[1], formatter);
                 }
 
-
                 if (!endDate.isAfter(startDate) && !endDate.equals(startDate)) {
                     throw new IllegalStateException();
                 }
                 return new LocalDateTime[]{startDate, endDate};
-
             } catch (DateTimeParseException | IllegalArgumentException e) {
                 System.out.printf("Неверный формат. Пожалуйста, следуйте формату: %s - %s\n", format, format);
             } catch (IllegalStateException e) {
                 System.out.println("Неправильно задан диапозон дат. Вторая дата должна быть позде первой \n");
             }
-
         }
-    }
-
-    public ResultResponse showSlot(LocalDate currentDate, LocalDate endDate, HashMap<LocalDate, ArrayList<Booking>> timeTable, Chamber chamber) {
-        StringBuilder answer = new StringBuilder();
-
-        if (chamber.getChamberTypeEnum() == ChamberTypeEnum.HALL) {
-            if (timeTable.isEmpty()) {
-                return new ResultResponse(true, ResponseEnum.NO_AVAILABLE_SLOTS_DETECTED);
-            }
-            while (!currentDate.isAfter(endDate)) {
-                if (timeTable.get(currentDate).isEmpty()) {
-                    answer.append(currentDate);
-                    answer.append(" Свободно весь день\r\n");
-                } else {
-                    ArrayList<String> timeSlots = new ArrayList<>();
-                    timeSlots.add("00:00");
-                    timeSlots.add("23:59");
-                    answer.append("Свободные слоты: ");
-                    ArrayList<Booking> bookings = timeTable.get(currentDate);
-                    for (Booking booking : bookings) {
-                        int startMinutes = booking.getStartDate().getMinute();
-                        int endMinutes = booking.getEndDate().getMinute();
-                        String startTime = booking.getStartDate().getHour() + ":" + startMinutes / 10 + startMinutes % 10;
-                        String endTime = booking.getEndDate().getHour() + ":" + endMinutes / 10 + endMinutes % 10;
-                        if (!timeSlots.contains(startTime)) {
-                            timeSlots.add(startTime);
-                        } else {
-                            timeSlots.remove(startTime);
-                        }
-
-                        if (!timeSlots.contains(endTime)) {
-                            timeSlots.add(endTime);
-                        } else {
-                            timeSlots.remove(endTime);
-                        }
-                        Collections.sort(timeSlots);
-                        for (int i = 0; i < timeSlots.size() - 1; i += 2) {
-                            answer.append(timeSlots.get(i)).append(" - ").append(timeSlots.get(i + 1)).append(", ");
-                        }
-                        answer.append("\n");
-
-                    }
-                }
-                currentDate = currentDate.plusDays(1);
-            }
-        } else {
-            if (chamber.getCoworkingTimeSlot().isEmpty()) {
-                return new ResultResponse(true, ResponseEnum.NO_AVAILABLE_SLOTS_DETECTED);
-            }
-            while (!currentDate.isAfter(endDate)) {
-                HashMap<LocalDateTime, Integer> timeSlots = chamber.getCoworkingTimeSlot().get(currentDate);
-                System.out.println(currentDate);
-                for (Map.Entry<LocalDateTime, Integer> slot : timeSlots.entrySet())
-                    System.out.printf("\t %d:%d%d  -  %d \n", slot.getKey().getHour(), slot.getKey().getMinute() / 10, slot.getKey().getMinute() % 10, slot.getValue());
-                currentDate = currentDate.plusDays(1);
-            }
-        }
-        return new ResultResponse(true, ResponseEnum.TEXT, answer.toString());
-
     }
 }
-
