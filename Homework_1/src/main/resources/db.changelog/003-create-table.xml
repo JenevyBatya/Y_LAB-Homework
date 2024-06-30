@@ -49,6 +49,7 @@
             <column name="id" type="INTEGER" defaultValueComputed="nextval('global_id_seq')">
                 <constraints primaryKey="true"/>
             </column>
+            <column name="date" type="DATE"/>
             <column name="hour" type="INTEGER">
                 <constraints nullable="false"/>
             </column>
@@ -75,7 +76,7 @@
             <column name="start_time" type="TIME"/>
             <column name="end_time" type="TIME"/>
             <column name="is_coworking" type="BOOLEAN"/>
-            <column name="number_of_slots" type="INTEGER"/>
+<!--            <column name="number_of_slots" type="INTEGER"/>-->
         </createTable>
 
     </changeSet>

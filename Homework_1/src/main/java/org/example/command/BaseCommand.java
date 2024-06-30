@@ -6,6 +6,6 @@ import java.sql.SQLException;
 
 public interface BaseCommand {
 
-    ResultResponse action() throws SQLException;
+    ResultResponse action();
 
 }

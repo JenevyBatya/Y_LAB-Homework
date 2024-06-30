@@ -55,7 +55,7 @@ public class Create extends BaseCommandAbs implements BaseCommand {
      * @return объект {@link ResultResponse} с результатом выполнения команды.
      */
     @Override
-    public ResultResponse action() throws SQLException {
+    public ResultResponse action() {
         System.out.println(ResponseEnum.ONLY_3_MONTHS);
         ResultResponse resultResponse = null;
         int num = 0;
@@ -88,7 +88,8 @@ public class Create extends BaseCommandAbs implements BaseCommand {
             } catch (IllegalAccessException e) {
                 return new ResultResponse(true, ResponseEnum.NO_AUTHORIZATION_YET);
             }
-            ResultResponse response =getChamberManager().chamberExists(num);
+            
+            ResultResponse response = getChamberManager().chamberExists(num);
             if (response.isStatus()) { //Если есть аудитория
                 while (true) {
                     text = new HelperNameEnum[]{Table, Book};
@@ -130,9 +131,9 @@ public class Create extends BaseCommandAbs implements BaseCommand {
      */
     public ResultResponse bookOption(int chamber_id) throws GettingBackToMain, SQLException {
         LocalDateTime[] dates;
-        String sql = "SELECT type FROM example.chamber WHERE number = ?";
+        String sql = "SELECT type FROM example.chamber WHERE chamber_id = ?";
         PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setInt(1, num);
+        ps.setInt(1, chamber_id);
         ResultSet resultSet = ps.executeQuery();
         if (resultSet.getString("type").equals(ChamberTypeEnum.HALL.toString())) {
             dates = checkDateFormat(formatterBook);
