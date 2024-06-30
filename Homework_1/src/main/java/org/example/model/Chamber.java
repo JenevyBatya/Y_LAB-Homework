@@ -23,8 +23,8 @@ public class Chamber {
     private static final LocalDate today = LocalDate.now();
     private static final LocalDate plusThreeMonthsDay = today.plusMonths(3);
     private static ChamberTypeEnum chamberTypeEnum = null;
-    static PreparedStatement ps;
-    static String sql;
+    private static PreparedStatement ps;
+    private static String sql;
     private static final HashMap<LocalDate, HashMap<LocalDateTime, Integer>> coworkingTimeSlot = new HashMap<>();
     //    static HashMap<Date, ArrayList<TimeSlot>> timeMap = new HashMap<>();
 
