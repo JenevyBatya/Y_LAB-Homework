@@ -70,7 +70,7 @@ public class ExpertMode extends BaseCommandAbs implements BaseCommand {
 
     public ResultResponse deleteChamber() throws GettingBackToMain {
         int num = Integer.parseInt(getChamberManager().gettingNumberToDelete().getData());
-        String sql = "DELETE FROM example.chamber WHERE chamber_id==?";
+        String sql = "DELETE FROM example.chamber WHERE chamber_id=?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, num);

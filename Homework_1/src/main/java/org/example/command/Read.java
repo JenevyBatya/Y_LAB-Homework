@@ -41,7 +41,7 @@ public class Read extends BaseCommandAbs implements BaseCommand {
 
                 if (isChamberExist(num)) {
 
-                    String sql = "SELECT * FROM example.booking WHERE user_id==? AND chamber_id==?";
+                    String sql = "SELECT * FROM example.booking WHERE user_id=? AND chamber_id=?";
                     PreparedStatement ps = connection.prepareStatement(sql);
                     ps.setInt(1, userManager.getUser().getId());
                     ps.setInt(2, num);

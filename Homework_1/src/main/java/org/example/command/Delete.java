@@ -31,7 +31,7 @@ public class Delete extends BaseCommandAbs implements BaseCommand {
             try {
                 checkingAuthorization();
                 ArrayList<Booking> bookings = new ArrayList<>();
-                sql = "SELECT * FROM example.booking WHERE user_id==?";
+                sql = "SELECT * FROM example.booking WHERE user_id=?";
                 ps = connection.prepareStatement(sql);
                 ps.setInt(1, userManager.getUser().getId());
                 ResultSet resultSet = ps.executeQuery();
@@ -95,7 +95,7 @@ public class Delete extends BaseCommandAbs implements BaseCommand {
     }
 
     public static int findChamber(int chamberId) throws SQLException {
-        sql = "SELECT * FROM example.chamber WHERE chamber_id==?";
+        sql = "SELECT * FROM example.chamber WHERE chamber_id=?";
         ps = connection.prepareStatement(sql);
         ps.setInt(1, chamberId);
         ResultSet resultSet = ps.executeQuery();
@@ -103,7 +103,7 @@ public class Delete extends BaseCommandAbs implements BaseCommand {
     }
 
     public void deleteChamber(int chamberId) throws SQLException {
-        sql = "DELETE FROM example.booking WHERE chamber_id==?";
+        sql = "DELETE FROM example.booking WHERE chamber_id=?";
         ps = connection.prepareStatement(sql);
         ps.setInt(1, chamberId);
         ps.executeQuery();
@@ -115,14 +115,14 @@ public class Delete extends BaseCommandAbs implements BaseCommand {
         LocalDateTime currentTime = booking.getStartDate();
 
         while (!currentTime.isAfter(endTime)) {
-            sql = "SELECT * FROM example.time_slot WHERE chamber_id==? AND date==? And hour==?";
+            sql = "SELECT * FROM example.time_slot WHERE chamber_id=? AND date=? And hour=?";
             ps = connection.prepareStatement(sql);
             ps.setInt(1, booking.getChamberId());
             ps.setDate(2, Date.valueOf(currentTime.toLocalDate()));
             ps.setInt(3, currentTime.getHour());
             ResultSet resultSet = ps.executeQuery();
             int booked_slots = resultSet.getInt("booked_slots");
-            sql = "UPDATE example.time_slots SET booked_slots = ? WHERE chamber_id==? AND date==? And hour==?";
+            sql = "UPDATE example.time_slots SET booked_slots = ? WHERE chamber_id=? AND date=? And hour=?";
             ps = connection.prepareStatement(sql);
             ps.setInt(1, booked_slots + 1);
             ps.setInt(2, booking.getChamberId());

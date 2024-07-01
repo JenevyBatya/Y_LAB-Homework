@@ -137,7 +137,7 @@ public class Chamber {
     private static boolean isHallBookingOccupied(Booking newBooking) throws SQLException {
         LocalDate startDate = newBooking.getStartDate().toLocalDate();
         LocalDate endDate = newBooking.getEndDate().toLocalDate();
-        String sql = "SELECT * FROM example.booking WHERE start_date >= ? AND  end_date <= ? AND chamber_id == ?";
+        String sql = "SELECT * FROM example.booking WHERE start_date >= ? AND  end_date <= ? AND chamber_id = ?";
         PreparedStatement ps = connection.prepareStatement(sql);
         ps.setDate(1, Date.valueOf(startDate));
         ps.setDate(2, Date.valueOf(endDate));
@@ -181,7 +181,7 @@ public class Chamber {
         LocalDateTime currentDateTime = newBooking.getStartDate();
         LocalDateTime endDateTime = newBooking.getEndDate();
 
-        String sql = "SELECT * FROM example.time_slot WHERE chamber_id==? AND ? < date AND date<? OR (date==? AND hour<=? OR date==? AND hour==?) ";
+        String sql = "SELECT * FROM example.time_slot WHERE chamber_id=? AND ? < date AND date<? OR (date=? AND hour<=? OR date=? AND hour=?) ";
         ps = connection.prepareStatement(sql);
         ps.setInt(1, newBooking.getChamberId());
         ps.setDate(2, Date.valueOf(startDateTime.toLocalDate()));
@@ -216,7 +216,7 @@ public class Chamber {
 
     public static int findCapacityOfChamber(int chamberId) throws SQLException {
         int capacity;
-        sql = "SELECT capacity FROM example.chamber WHERE id==?";
+        sql = "SELECT capacity FROM example.chamber WHERE id=?";
         ps = connection.prepareStatement(sql);
         ps.setInt(1, chamberId);
         capacity = ps.executeQuery().getInt("capacity");
@@ -334,7 +334,7 @@ public class Chamber {
     }
 
     public static boolean isChamberExist(int chamber_num) throws SQLException {
-        sql = "SELECT count(*) FROM example.chamber WHERE number==?";
+        sql = "SELECT count(*) FROM example.chamber WHERE number=?";
         ps = connection.prepareStatement(sql);
         ps.setInt(1, chamber_num);
         ResultSet resultSet = ps.executeQuery();

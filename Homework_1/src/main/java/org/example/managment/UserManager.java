@@ -54,7 +54,7 @@ public class UserManager {
             if (checkingEmail(email) == null) {
                 setUser(new User(name, surname, email, phoneNumber, password));
                 setAuthorized(true);
-                sql = "INSERT INTO user (name, surname,email,phone_number, password) VALUES (?,?,?,?,?)";
+                sql = "INSERT INTO example.user (name, surname,email,phone_number, password) VALUES (?,?,?,?,?)";
                 ps = connection.prepareStatement(sql);
                 ps.setString(1, name);
                 ps.setString(2, surname);
@@ -76,7 +76,7 @@ public class UserManager {
     public ResultResponse authorizing(String email, String password) {
         try {
             ResultSet resultSet = checkingEmail(email);
-            if (resultSet != null) {
+            if (resultSet.next()) {
                 String possiblePassword = resultSet.getString("password");
                 if (possiblePassword.equals(password)) {
                     String name = resultSet.getString("name");
@@ -97,15 +97,12 @@ public class UserManager {
     }
 
     private ResultSet checkingEmail(String email) throws SQLException {
-        sql = "SELECT * FROM user WHERE email==?";
+        sql = "SELECT * FROM example.user WHERE email=?";
         ps = connection.prepareStatement(sql);
         ps.setString(1, email);
         ResultSet resultSet = ps.executeQuery();
         int count = 0;
-        while (resultSet.next()) {
-            count++;
-        }
-        return count == 0 ? null : resultSet;
+        return resultSet;
     }
 
     public static ResultResponse gettingPassword() throws GettingBackToMain {
