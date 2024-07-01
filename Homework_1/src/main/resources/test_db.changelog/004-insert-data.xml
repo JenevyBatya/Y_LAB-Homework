@@ -5,9 +5,9 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
-        logicalFilePath="db/changelog.xml">
-    <changeSet id="004-insert-data" author="sushka">
-        <insert tableName="user" schemaName="example">
+        logicalFilePath="test_db/changelog.xml">
+    <changeSet id="004-insert-data" author="gosha">
+        <insert tableName="user" schemaName="test">
             <column name="id" value="1"/>
             <column name="name" value="John"/>
             <column name="surname" value="Doe"/>
@@ -15,7 +15,7 @@
             <column name="phone_number" value="1234567890"/>
             <column name="password" value="password1"/>
         </insert>
-        <insert tableName="user" schemaName="example">
+        <insert tableName="user" schemaName="test">
             <column name="id" value="2"/>
             <column name="name" value="Jane"/>
             <column name="surname" value="Smith"/>
@@ -25,13 +25,13 @@
         </insert>
 
         <!-- Предзаполнение таблицы администраторов -->
-        <insert tableName="admin" schemaName="example">
+        <insert tableName="admin" schemaName="test">
             <column name="id" value="1"/>
-            <column name="user_id" value="2"/>
+            <column name="user_id" value="1"/>
         </insert>
 
         <!-- Предзаполнение таблицы аудиторий -->
-        <insert tableName="chamber" schemaName="example">
+        <insert tableName="chamber" schemaName="test">
             <column name="id" value="1"/>
             <column name="number" value="101"/>
             <column name="name" value="Conference Room"/>
@@ -41,7 +41,7 @@
         </insert>
 
         <!-- Предзаполнение таблицы временных слотов -->
-        <insert tableName="time_slot" schemaName="example">
+        <insert tableName="time_slot" schemaName="test">
             <column name="id" value="1"/>
             <column name="date" value="2024-07-01"/>
             <column name="hour" value="9"/>
@@ -51,7 +51,7 @@
         </insert>
 
         <!-- Предзаполнение таблицы бронирований -->
-        <insert tableName="booking" schemaName="example">
+        <insert tableName="booking" schemaName="test">
             <column name="id" value="1"/>
             <column name="user_id" value="2"/>
             <column name="chamber_id" value="1"/>

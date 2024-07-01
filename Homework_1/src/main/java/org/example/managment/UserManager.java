@@ -54,7 +54,7 @@ public class UserManager {
             if (checkingEmail(email) == null) {
                 setUser(new User(name, surname, email, phoneNumber, password));
                 setAuthorized(true);
-                sql = "INSERT INTO example.user (name, surname,email,phone_number, password) VALUES (?,?,?,?,?)";
+                sql = "INSERT INTO user (name, surname,email,phone_number, password) VALUES (?,?,?,?,?)";
                 ps = connection.prepareStatement(sql);
                 ps.setString(1, name);
                 ps.setString(2, surname);
@@ -97,7 +97,7 @@ public class UserManager {
     }
 
     private ResultSet checkingEmail(String email) throws SQLException {
-        sql = "SELECT * FROM example.user WHERE email==?";
+        sql = "SELECT * FROM user WHERE email==?";
         ps = connection.prepareStatement(sql);
         ps.setString(1, email);
         ResultSet resultSet = ps.executeQuery();

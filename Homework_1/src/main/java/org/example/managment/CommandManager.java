@@ -24,8 +24,6 @@ public class CommandManager {
     public CommandManager() {
         chamberManager = new ChamberManager();
         registerCommands();
-
-
         try {
             ConnectionManager.registeringConnection();
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));

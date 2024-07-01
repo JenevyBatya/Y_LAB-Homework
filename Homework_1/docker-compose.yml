@@ -8,12 +8,29 @@ services:
       POSTGRES_USER: sushka
       POSTGRES_PASSWORD: 12345
       POSTGRES_DB: coworking
-
-#      PGDATA: /var/lib/postgresql/data/pgdata
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ../2. Init Database:/docker-entrypoint-initdb.d
+      - habrdb-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+  #    volumes:
+  #      - newpgdata:/var/lib/postgresql/data
+
+  testdb:
+    image: postgres:latest
+    container_name: testdb_container
+    environment:
+      POSTGRES_USER: gosha
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: coworking_test
+#      PGDATA: "/var/lib/postgresql/data/pgdata"
 #    volumes:
-#      - ./pgdata:/var/lib/postgresql/data/pgdata
+#      - ../2. Init Database:/docker-entrypoint-initdb.d
+#      - habrdb-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+#    volumes:
+#      - newpgdata:/var/lib/postgresql/data
 volumes:
-  pgdata:
-    driver: local
+  habrdb-data:

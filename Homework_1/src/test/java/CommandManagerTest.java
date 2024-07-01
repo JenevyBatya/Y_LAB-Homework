@@ -26,13 +26,13 @@ public class CommandManagerTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        TestConnectionManager.registeringConnection();
     }
 
     @DisplayName("Проверка регистрации команд для пользователя")
     @Test
     public void testCommandManagerRegisterCommands() {
         assertThat(commandManager.getCommandTable().isEmpty()).isTrue();
-        commandManager.registerChambers(mockChamberManager);
         commandManager.registerCommands();
         assertThat(commandManager.getCommandTable().size()).isEqualTo(8);
     }
@@ -54,7 +54,7 @@ public class CommandManagerTest {
         System.setOut(new PrintStream(outContent));
 
         assertThat(commandManager.getCommandTable().isEmpty()).isTrue();
-        commandManager.registerChambers(mockChamberManager);
+//        commandManager.registerChambers(mockChamberManager);
         commandManager.registerCommands();
         try {
             commandManager.run();
