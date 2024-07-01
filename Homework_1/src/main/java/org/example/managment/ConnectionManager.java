@@ -1,5 +1,7 @@
 package org.example.managment;
 
+import org.example.enumManagment.ResponseEnum;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -13,7 +15,7 @@ public class ConnectionManager {
         try {
             connection = DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.out.println(ResponseEnum.SQL_ERROR);
         }
     }
 }

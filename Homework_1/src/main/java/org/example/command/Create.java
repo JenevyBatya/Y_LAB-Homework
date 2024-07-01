@@ -66,7 +66,7 @@ public class Create extends BaseCommandAbs implements BaseCommand {
         System.out.println(ResponseEnum.ONLY_3_MONTHS);
         ResultResponse resultResponse = null;
         int num = 0;
-        String line;
+        String line = null;
         boolean flag = false;
 
         while (true) {
@@ -95,7 +95,7 @@ public class Create extends BaseCommandAbs implements BaseCommand {
             } catch (IllegalAccessException e) {
                 return new ResultResponse(true, ResponseEnum.NO_AUTHORIZATION_YET);
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                System.out.println(ResponseEnum.SQL_ERROR);
             }
             try {
                 ResultResponse response = getChamberManager().chamberExists(num);
@@ -116,7 +116,7 @@ public class Create extends BaseCommandAbs implements BaseCommand {
                         } catch (GettingBackToMain e) {
                             break;
                         } catch (SQLException e) {
-                            throw new RuntimeException(e);
+                            System.out.println(ResponseEnum.SQL_ERROR);
                         }
                         if (!resultResponse.getResponse().equals(ResponseEnum.OCCUPIED) && line.equals("Book")) {
                             return resultResponse;
@@ -129,7 +129,7 @@ public class Create extends BaseCommandAbs implements BaseCommand {
                         System.out.println("Данная аудитория отстутсвует");
                 }
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                System.out.println(ResponseEnum.SQL_ERROR);
             }
         }
     }

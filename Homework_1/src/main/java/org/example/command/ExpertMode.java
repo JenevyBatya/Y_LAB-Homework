@@ -62,7 +62,7 @@ public class ExpertMode extends BaseCommandAbs implements BaseCommand {
         try {
             insertChamber(num, name, description, chamberTypeEnum.toString(), amount);
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            System.out.println(ResponseEnum.SQL_ERROR);
             return new ResultResponse(false, ResponseEnum.UNSUCCESS_ADD);
         }
         return new ResultResponse(true, ResponseEnum.SUCCESS_ADD);
@@ -70,9 +70,19 @@ public class ExpertMode extends BaseCommandAbs implements BaseCommand {
 
     public ResultResponse deleteChamber() throws GettingBackToMain {
         int num = Integer.parseInt(getChamberManager().gettingNumberToDelete().getData());
-        chamberList.remove(num);
-        return new ResultResponse(true, ResponseEnum.SUCCESS_DELETE_CHAMBER);
-
+        String sql = "DELETE FROM example.chamber WHERE chamber_id==?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, num);
+            int result = ps.executeUpdate();
+            if (result == 1) {
+                return new ResultResponse(true, ResponseEnum.SUCCESS_DELETE_CHAMBER);
+            }
+        } catch (SQLException e) {
+            System.out.println(ResponseEnum.SQL_ERROR);
+            return new ResultResponse(false, ResponseEnum.UNSUCCESS_DELETE_CHAMBER);
+        }
+        return new ResultResponse(false, ResponseEnum.UNSUCCESS_DELETE_CHAMBER);
     }
 
     public void insertChamber(int num, String name, String description, String type, int amount) throws SQLException {

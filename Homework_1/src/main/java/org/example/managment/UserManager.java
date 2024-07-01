@@ -68,7 +68,7 @@ public class UserManager {
                 return new ResultResponse(false, ResponseEnum.ALREADY_REGISTRATED);
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            return new ResultResponse(false, ResponseEnum.SQL_ERROR);
         }
 
     }
@@ -90,7 +90,7 @@ public class UserManager {
                 return new ResultResponse(false, ResponseEnum.WRONG_DATA);
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.out.println(ResponseEnum.SQL_ERROR);
         }
         return new ResultResponse(false, ResponseEnum.WRONG_DATA);
 

@@ -89,7 +89,7 @@ public class Chamber {
     }
 
     public static ResultResponse add(Booking newBooking) {
-        ResultResponse resultResponse;
+        ResultResponse resultResponse = null;
         try {
             if (isBookingDateInvalid(newBooking)) {
                 return createErrorResponse(ResponseEnum.WRONG_DATA);
@@ -100,7 +100,7 @@ public class Chamber {
                 resultResponse = handleCoworkingBooking(newBooking);
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.out.println(ResponseEnum.SQL_ERROR);
         }
 
         return resultResponse;
@@ -331,5 +331,14 @@ public class Chamber {
             ps.executeQuery();
             connection.commit();
         }
+    }
+
+    public static boolean isChamberExist(int chamber_num) throws SQLException {
+        sql = "SELECT count(*) FROM example.chamber WHERE number==?";
+        ps = connection.prepareStatement(sql);
+        ps.setInt(1, chamber_num);
+        ResultSet resultSet = ps.executeQuery();
+        return resultSet.getInt("count") != 0;
+
     }
 }

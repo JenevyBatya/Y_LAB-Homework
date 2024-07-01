@@ -20,11 +20,13 @@ public enum ResponseEnum {
     SUCCESS(""),
     SUCCESS_ADD("Аудитория успешно добавлена"),
     SUCCESS_DELETE_CHAMBER("Комната успешно удалена"),
+    UNSUCCESS_DELETE_CHAMBER("Неизвестная аудитория"),
     UNKNOWN_COMMAND("Неизвестная команда"),
     NO_ROOMS_DETECTED("Нет зарегистрированных аудиторий"),
     NO_AVAILABLE_SLOTS_DETECTED("Отствутсвуют временные слоты для резервации"),
     ACCESS_DENIED("Доступ закрыт"),
-    UNSUCCESS_ADD("Не удалось создать новую аудиторию");
+    UNSUCCESS_ADD("Не удалось создать новую аудиторию"),
+    SQL_ERROR("Ошибка подключения к базе данных");
 
     private String text;
 

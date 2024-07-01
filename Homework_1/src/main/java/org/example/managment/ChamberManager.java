@@ -41,7 +41,7 @@ public class ChamberManager {
             } catch (NumberFormatException e) {
                 System.out.println(ResponseEnum.WRONG_FORMAT);
             } catch (SQLException e) {
-                System.out.println("Ошибка при доступе к базе данных: " + e.getMessage());
+                System.out.println(ResponseEnum.SQL_ERROR);
             }
         }
     }
@@ -77,7 +77,7 @@ public class ChamberManager {
             } catch (NumberFormatException e) {
                 System.out.println(ResponseEnum.WRONG_FORMAT);
             } catch (SQLException e) {
-                System.out.println("Ошибка при доступе к базе данных: " + e.getMessage());
+                System.out.println(ResponseEnum.SQL_ERROR);
             }
         }
     }

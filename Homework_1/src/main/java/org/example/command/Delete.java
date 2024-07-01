@@ -17,8 +17,8 @@ import static org.example.managment.ConnectionManager.connection;
 import static org.example.model.Chamber.isCoworking;
 
 public class Delete extends BaseCommandAbs implements BaseCommand {
-    private PreparedStatement ps;
-    private String sql;
+    private static PreparedStatement ps;
+    private static String sql;
 
     public Delete(ChamberManager chamberManager, UserManager userManager) {
         super(chamberManager, userManager, Delete.class.getName());
@@ -35,32 +35,8 @@ public class Delete extends BaseCommandAbs implements BaseCommand {
                 ps = connection.prepareStatement(sql);
                 ps.setInt(1, userManager.getUser().getId());
                 ResultSet resultSet = ps.executeQuery();
-                int count = 0;
-                while (resultSet.next()) {
-                    Booking booking = new Booking();
-                    int chamberId = resultSet.getInt("chamber_id");
-                    Date startDate = resultSet.getDate("start_date");
-                    Date endDate = resultSet.getDate("end_date");
-
-                    Time startTime = resultSet.getTime("start_time");
-                    Time endTime = resultSet.getTime("end_time");
-
-                    LocalDate startLocalDate = startDate.toLocalDate();
-                    LocalDate endLocalDate = endDate.toLocalDate();
-                    LocalTime startLocalTime = startTime.toLocalTime();
-                    LocalTime endLocalTime = endTime.toLocalTime();
-
-                    LocalDateTime startLocalDateTime = startLocalDate.atTime(startLocalTime);
-                    LocalDateTime endLocalDateTime = endLocalDate.atTime(endLocalTime);
-
-                    booking.setChamberId(chamberId);
-                    booking.setStartDate(startLocalDateTime);
-                    booking.setEndDate(endLocalDateTime);
-                    bookings.add(booking);
-                    count++;
-                }
-
-                if (count == 0) {
+                bookings = addBookings(resultSet);
+                if (bookings.isEmpty()) {
                     return new ResultResponse(true, ResponseEnum.NO_BOOKED_ROOMS);
                 }
                 for (int i = 0; i < bookings.size(); i++) {
@@ -85,13 +61,40 @@ public class Delete extends BaseCommandAbs implements BaseCommand {
             } catch (NumberFormatException e) {
                 System.out.println("Неверный формат номера аудитории или команды");
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                System.out.println(ResponseEnum.SQL_ERROR);
             }
         }
 
     }
 
-    public int findChamber(int chamberId) throws SQLException {
+    public static ArrayList<Booking> addBookings(ResultSet resultSet) throws SQLException {
+        ArrayList<Booking> bookings = new ArrayList<>();
+        while (resultSet.next()) {
+            Booking booking = new Booking();
+            int chamberId = resultSet.getInt("chamber_id");
+            Date startDate = resultSet.getDate("start_date");
+            Date endDate = resultSet.getDate("end_date");
+
+            Time startTime = resultSet.getTime("start_time");
+            Time endTime = resultSet.getTime("end_time");
+
+            LocalDate startLocalDate = startDate.toLocalDate();
+            LocalDate endLocalDate = endDate.toLocalDate();
+            LocalTime startLocalTime = startTime.toLocalTime();
+            LocalTime endLocalTime = endTime.toLocalTime();
+
+            LocalDateTime startLocalDateTime = startLocalDate.atTime(startLocalTime);
+            LocalDateTime endLocalDateTime = endLocalDate.atTime(endLocalTime);
+
+            booking.setChamberId(chamberId);
+            booking.setStartDate(startLocalDateTime);
+            booking.setEndDate(endLocalDateTime);
+            bookings.add(booking);
+        }
+        return bookings;
+    }
+
+    public static int findChamber(int chamberId) throws SQLException {
         sql = "SELECT * FROM example.chamber WHERE chamber_id==?";
         ps = connection.prepareStatement(sql);
         ps.setInt(1, chamberId);
