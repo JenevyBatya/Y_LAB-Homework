@@ -23,18 +23,20 @@ public class AuthorizationTest {
 
     private final UserManager realUserManager = new UserManager();
 
+
     @InjectMocks
     private Authorization authorizationCommand;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        TestConnectionManager.registeringConnection();
     }
 
     @DisplayName("Проверка поведения команды, если пользователь не авторизован")
     @Test
     public void testAuthWhenNotAuthorized() {
-
+//        TestConnectionManager.registeringConnection();
         String input = "a\na\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
         BaseCommandAbs.setSc(new Scanner(System.in));

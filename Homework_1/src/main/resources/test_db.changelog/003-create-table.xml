@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        logicalFilePath="test_db/changelog.xml">
+    <changeSet id="003-create-table" author="gosha">
+
+        <!-- Таблица пользователей -->
+        <createTable tableName="user" schemaName="example">
+            <column name="id" type="INTEGER" defaultValueSequenceNext="global_test_id_seq" >
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="surname" type="VARCHAR(255)"/>
+            <column name="email" type="VARCHAR(255)"/>
+            <column name="phone_number" type="VARCHAR(12)"/>
+            <column name="password" type="VARCHAR(255)"/>
+        </createTable>
+
+        <!-- Таблица администраторов -->
+        <createTable tableName="admin" schemaName="example">
+            <column name="id" type="INTEGER" defaultValueComputed="nextval('global_test_id_seq')">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INTEGER">
+                <constraints nullable="false" foreignKeyName="fk_admin_user_id" references="example.user(id)"/>
+            </column>
+        </createTable>
+
+        <!-- Таблица аудиторий -->
+        <createTable tableName="chamber" schemaName="example">
+            <column name="id" type="INTEGER" defaultValueComputed="nextval('global_test_id_seq')">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="number" type="INTEGER">
+                <constraints unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="description" type="TEXT"/>
+            <column name="capacity" type="INTEGER"/>
+            <column name="type" type="VARCHAR(255)"/>
+        </createTable>
+
+        <!-- Таблица временных слотов (для коворкинга) -->
+        <createTable tableName="time_slot" schemaName="example">
+            <column name="id" type="INTEGER" defaultValueComputed="nextval('global_test_id_seq')">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="date" type="DATE"/>
+            <column name="hour" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="chamber_id" type="INTEGER">
+                <constraints foreignKeyName="fk_time_slot_chamber_id" references="example.chamber(id)"/>
+            </column>
+            <column name="booked_slots" type="INTEGER" defaultValue="0"/>
+            <column name="total_slots" type="INTEGER"/>
+        </createTable>
+
+        <!-- Таблица бронирований -->
+        <createTable tableName="booking" schemaName="example">
+            <column name="id" type="INTEGER" defaultValueComputed="nextval('global_test_id_seq')">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="INTEGER">
+                <constraints foreignKeyName="fk_booking_user_id" references="example.user(id)"/>
+            </column>
+            <column name="chamber_id" type="INTEGER">
+                <constraints foreignKeyName="fk_booking_chamber_id" references="example.chamber(id)"/>
+            </column>
+            <column name="start_date" type="DATE"/>
+            <column name="end_date" type="DATE"/>
+            <column name="start_time" type="TIME"/>
+            <column name="end_time" type="TIME"/>
+            <column name="is_coworking" type="BOOLEAN"/>
+        </createTable>
+
+    </changeSet>
+</databaseChangeLog>
