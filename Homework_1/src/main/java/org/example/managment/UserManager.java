@@ -17,7 +17,6 @@ import static org.example.managment.ConnectionManager.connection;
 public class UserManager {
     private boolean isAuthorized;
     private User user;
-    private final HashMap<String, User> userList = new HashMap<>();
     static String wrong_answer = "Неверный формат ответа";
     private String sql;
     private PreparedStatement ps;
@@ -26,6 +25,7 @@ public class UserManager {
         isAuthorized = false;
         User admin = new User("Mao", "Mao", "a", "89999999999", "a");
         admin.setRole(Role.ADMIN);
+        HashMap<String, User> userList = new HashMap<>();
         userList.put("a", admin);
         User commoner = new User("Mao", "Mao", "b", "89999999999", "b");
         userList.put("b", commoner);
@@ -101,7 +101,6 @@ public class UserManager {
         ps = connection.prepareStatement(sql);
         ps.setString(1, email);
         ResultSet resultSet = ps.executeQuery();
-        int count = 0;
         return resultSet;
     }
 

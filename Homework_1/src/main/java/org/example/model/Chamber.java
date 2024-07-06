@@ -19,41 +19,16 @@ public class Chamber {
     private final int number;
     private final String name;
     private final String description;
-    private static HashMap<LocalDate, ArrayList<Booking>> timeTable = null;
     private static final LocalDate today = LocalDate.now();
     private static final LocalDate plusThreeMonthsDay = today.plusMonths(3);
     private static ChamberTypeEnum chamberTypeEnum = null;
     private static PreparedStatement ps;
     private static String sql;
-    private static final HashMap<LocalDate, HashMap<LocalDateTime, Integer>> coworkingTimeSlot = new HashMap<>();
-    //    static HashMap<Date, ArrayList<TimeSlot>> timeMap = new HashMap<>();
 
-
-    public Chamber(int number, String name, String description, HashMap<LocalDate, ArrayList<Booking>> timeTable, ChamberTypeEnum chamberTypeEnum, int peopleAmount) {
+    public Chamber(int number, String name, String description) {
         this.number = number;
         this.name = name;
         this.description = description;
-        Chamber.timeTable = timeTable;
-        Chamber.chamberTypeEnum = chamberTypeEnum;
-
-        LocalDate currentDay = LocalDate.now();
-        if (chamberTypeEnum == ChamberTypeEnum.HALL) {
-            while (!currentDay.isAfter(plusThreeMonthsDay)) {
-                timeTable.put(currentDay, new ArrayList<>());
-                currentDay = currentDay.plusDays(1);
-            }
-        } else {
-            while (!currentDay.isAfter(plusThreeMonthsDay)) {
-                coworkingTimeSlot.put(currentDay, new HashMap<>());
-                LocalDateTime currentDayTime = currentDay.atStartOfDay();
-                while (currentDayTime.getHour() != 23) {
-                    coworkingTimeSlot.get(currentDay).put(currentDayTime, peopleAmount);
-                    currentDayTime = currentDayTime.plusHours(1);
-                }
-                coworkingTimeSlot.get(currentDay).put(currentDayTime, peopleAmount);
-                currentDay = currentDay.plusDays(1);
-            }
-        }
     }
 
     public int getNumber() {
@@ -62,30 +37,6 @@ public class Chamber {
 
     public String getName() {
         return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public HashMap<LocalDate, ArrayList<Booking>> getTimeTable() {
-        return timeTable;
-    }
-
-    public LocalDate getToday() {
-        return today;
-    }
-
-    public LocalDate getPlusThreeMonthsDay() {
-        return plusThreeMonthsDay;
-    }
-
-    public ChamberTypeEnum getChamberTypeEnum() {
-        return chamberTypeEnum;
-    }
-
-    public HashMap<LocalDate, HashMap<LocalDateTime, Integer>> getCoworkingTimeSlot() {
-        return coworkingTimeSlot;
     }
 
     public static ResultResponse add(Booking newBooking) {

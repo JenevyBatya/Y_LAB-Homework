@@ -88,7 +88,7 @@ public class CreateTest {
 
         BaseCommandAbs.setSc(new Scanner(System.in));
         createCommand = new Create(realChamberManager, realUserManager);
-//        createCommand.bookOption(realChamberManager.getChamberList().get(1));
+        createCommand.bookOption(realChamberManager.getChamberList().get(1));
         String wrongFormat = outContent.toString().split("\n")[1];
         assertThat(wrongFormat).isEqualTo(ResponseEnum.WRONG_FORMAT + ". Пожалуйста, следуйте формату: " + formatterBookPattern + " - " + formatterBookPattern);
     }

@@ -30,7 +30,7 @@ public class Delete extends BaseCommandAbs implements BaseCommand {
         while (true) {
             try {
                 checkingAuthorization();
-                ArrayList<Booking> bookings = new ArrayList<>();
+                ArrayList<Booking> bookings;
                 sql = "SELECT * FROM example.booking WHERE user_id=?";
                 ps = connection.prepareStatement(sql);
                 ps.setInt(1, userManager.getUser().getId());

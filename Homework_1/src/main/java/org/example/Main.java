@@ -1,9 +1,8 @@
 package org.example;
 
-import org.example.managment.ChamberManager;
+
 import org.example.managment.CommandManager;
 
-import java.sql.*;
 
 public class Main {
 

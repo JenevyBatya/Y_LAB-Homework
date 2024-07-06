@@ -4,13 +4,11 @@ import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
-import liquibase.exception.DatabaseException;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.example.command.*;
 import org.example.enumManagment.ResponseEnum;
 
-import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Scanner;
 
@@ -68,19 +66,9 @@ public class CommandManager {
         }
     }
 
-    public UserManager getUserManager() {
-        return userManager;
-    }
 
     public Hashtable<String, BaseCommand> getCommandTable() {
         return commandTable;
     }
 
-    public ChamberManager getChamberManager() {
-        return chamberManager;
-    }
-
-    public void setChamberManager(ChamberManager chamberManager) {
-        this.chamberManager = chamberManager;
-    }
 }

@@ -32,7 +32,6 @@ import static org.example.model.Chamber.*;
  */
 public class Create extends BaseCommandAbs implements BaseCommand {
 
-    // Форматы для различных типов дат
     private final String formatterBookPattern = "dd.MM.yyyy HH.mm";
     private final String formatterPeriodPattern = "dd.MM.yyyy";
     private final String formatterCoworkingPattern = "dd.MM.yyyy HH";

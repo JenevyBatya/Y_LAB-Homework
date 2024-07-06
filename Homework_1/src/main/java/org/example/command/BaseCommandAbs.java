@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 public class BaseCommandAbs {
-//    protected HashMap<Integer, Chamber> chamberList;
     static Scanner sc;
     protected UserManager userManager;
     public String name;
@@ -49,7 +48,4 @@ public class BaseCommandAbs {
         return chamberManager;
     }
 
-    public void setChamberManager(ChamberManager chamberManager) {
-        this.chamberManager = chamberManager;
-    }
 }
