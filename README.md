@@ -6,3 +6,6 @@
 
 
  [ДЗ №2 Pull request](https://github.com/JenevyBatya/Y_LAB-Homework/pull/2) 
+
+
+  [ДЗ №3 Pull request](https://github.com/JenevyBatya/Y_LAB-Homework/pull/3) 
