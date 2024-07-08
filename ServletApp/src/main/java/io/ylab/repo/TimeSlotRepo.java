@@ -28,6 +28,24 @@ public class TimeSlotRepo {
         ConnectionManager.getConnection().commit();
     }
 
+    public void bookTimeSlot(Date date, int hour, int chamberId) throws SQLException {
+        String sql = "SELECT * FROM example.time_slot WHERE chamber_id=? AND date=? And hour=?";
+        PreparedStatement ps = ConnectionManager.getConnection().prepareStatement(sql);
+        ps.setInt(1, chamberId);
+        ps.setDate(2, date);
+        ps.setInt(3, hour);
+        ResultSet resultSet = ps.executeQuery();
+        int booked_slots = resultSet.getInt("booked_slots");
+        sql = "UPDATE example.time_slots SET booked_slots = ? WHERE chamber_id=? AND date=? And hour=?";
+        ps = ConnectionManager.getConnection().prepareStatement(sql);
+        ps.setInt(1, booked_slots + 1);
+        ps.setInt(2, chamberId);
+        ps.setDate(3, date);
+        ps.setInt(4, hour);
+        ps.executeUpdate();
+        ConnectionManager.getConnection().commit();
+    }
+
 
     public ResultSet getCoworkingTimeSlotsInPeriod(LocalDateTime startDateTime, LocalDateTime endDateTime, Booking newBooking) throws SQLException {
         String sql = "SELECT * FROM example.time_slot WHERE chamber_number=? AND ? < date AND date<? OR (date=? AND hour<=? OR date=? AND hour=?) ";

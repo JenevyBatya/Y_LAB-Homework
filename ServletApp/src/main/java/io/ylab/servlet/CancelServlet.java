@@ -19,12 +19,18 @@ import java.io.IOException;
 public class CancelServlet extends HttpServlet {
     private final BookingService bookingService = new BookingService();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    //удаление брони
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        ResultResponse response = bookingService.getUserBooking(req);
+        super.doGet(req, resp);
+    }
+
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         BookingDto bookingDTO = objectMapper.readValue(req.getReader(), BookingDto.class);
         Booking booking = BookingMapper.INSTANCE.toEntity(bookingDTO);
-
+        ResultResponse response = bookingService.deleteBooking(booking);
         super.doDelete(req, resp);
     }
 }

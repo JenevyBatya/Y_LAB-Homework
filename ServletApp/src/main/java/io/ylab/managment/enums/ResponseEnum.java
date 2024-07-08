@@ -25,7 +25,7 @@ public enum ResponseEnum {
     TOKEN_MALFORMED_JWT("Malformed jwt"),
     TOKEN_UNSUPPORTED_JWT("Unsupported jwt"),
     TOKEN_EXPIRED("Token expired"),
-    SQL_ERROR("Ошибка подключения к базе данных");
+    SQL_ERROR("Ошибка запроса. Невалидные данные");
     private final String text;
 
     ResponseEnum(String text) {

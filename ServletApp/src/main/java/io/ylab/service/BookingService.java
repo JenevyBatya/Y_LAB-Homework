@@ -9,7 +9,10 @@ import io.ylab.model.TimeSlot;
 import io.ylab.repo.BookingRepo;
 import io.ylab.repo.ChamberRepo;
 import io.ylab.repo.TimeSlotRepo;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 
+import java.net.http.HttpRequest;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,18 +27,33 @@ public class BookingService {
     private final TimeSlotRepo timeSlotRepo = new TimeSlotRepo();
     private final ChamberRepo chamberRepo = new ChamberRepo();
 
-    public ResultResponse addBooking(Booking booking) throws SQLException {
-        if (booking.getStartDate() != null && booking.getEndDate() != null) {
-            if (chamberRepo.isCoworking(booking.getChamberNumber())) {
-                return handleCoworkingBooking(booking);
-            } else {
-                return handleHallBooking(booking);
+    public ResultResponse addBooking(Booking booking) {
+        try {
+            if (booking.getStartDate() != null && booking.getEndDate() != null) {
+                if (chamberRepo.isCoworking(booking.getChamberNumber())) {
+                    return handleCoworkingBooking(booking);
+                } else {
+                    return handleHallBooking(booking);
+                }
             }
+            return new ResultResponse(false, ResponseEnum.INVALID_DATA);
+        } catch (SQLException e) {
+            return new ResultResponse(false, ResponseEnum.SQL_ERROR);
         }
-        return new ResultResponse(false, ResponseEnum.INVALID_DATA);
+
     }
 
-    public ResultResponse deleteBooking(int bookingId) {
+    public ResultResponse deleteBooking(Booking booking) {
+        return null;
+    }
+
+    public ResultResponse getTable(Booking booking) {
+
+        return null;
+    }
+
+    public ResultResponse getUserBooking(HttpServletRequest request) {
+
         return null;
     }
 
@@ -120,13 +138,27 @@ public class BookingService {
                 int hour = currentDateTime.getHour();
                 int chamberId = chamberRepo.findChamberId(newBooking.getChamberNumber());
                 timeSlotRepo.putNewHourCoworkingSlot(date, hour, capacity, chamberId);
+                TimeSlot timeSlot = new TimeSlot();
+                timeSlot.setDate(date);
+                timeSlot.setHour(hour);
+                timeSlot.setChamberNumber(newBooking.getChamberNumber());
+                timeSlot.setBookedSlots(capacity);
+                timeSlot.setTotalSlots(capacity);
+                try {
+                    timeMap.get(date).add(timeSlot);
+                } catch (NullPointerException ex) {
+                    ArrayList<TimeSlot> list = new ArrayList<>();
+                    list.add(timeSlot);
+                    timeMap.put(date, list);
+                }
+
             }
             currentDateTime = currentDateTime.plusHours(1);
         }
         return false;
     }
 
-    public void getTimeMapForCoworking(ResultSet resultSet, TreeMap<Date, ArrayList<TimeSlot>> timeMap) throws SQLException {
+    private void getTimeMapForCoworking(ResultSet resultSet, TreeMap<Date, ArrayList<TimeSlot>> timeMap) throws SQLException {
         while (resultSet.next()) {
             TimeSlot timeSlot = new TimeSlot();
             Date date = resultSet.getDate("date");
@@ -151,24 +183,23 @@ public class BookingService {
         LocalDateTime endDateTime = newBooking.getEndDate();
 
         while (!currentDateTime.isAfter(endDateTime)) {
-            try {
-                ArrayList<TimeSlot> timeSlots = timeMap.get(Date.valueOf(currentDateTime.toLocalDate()));
-                for (TimeSlot timeSlot : timeSlots) {
-                    if (currentDateTime.getHour() == timeSlot.getHour()) {
-                        timeSlot.setBookedSlots(timeSlot.getBookedSlots() - 1);
-                    }
+            ArrayList<TimeSlot> timeSlots = timeMap.get(Date.valueOf(currentDateTime.toLocalDate()));
+            for (TimeSlot timeSlot : timeSlots) {
+                if (currentDateTime.getHour() == timeSlot.getHour()) {
+                    timeSlot.setBookedSlots(timeSlot.getBookedSlots() - 1);
+                    Date date = Date.valueOf(currentDateTime.toLocalDate());
+                    int hour = currentDateTime.getHour();
+                    int chamberId = chamberRepo.findChamberId(newBooking.getChamberNumber());
+                    timeSlotRepo.bookTimeSlot(date, hour, chamberId);
                 }
-            } catch (NullPointerException e) {
-                putNewDayCoworkingSlots(Date.valueOf(currentDateTime.toLocalDate()), newBooking.getChamberId());
             }
-
             currentDateTime = currentDateTime.plusHours(1);
         }
-
+        return new ResultResponse(true, ResponseEnum.BOOKING_SUCCESS_ADD);
     }
 
 
-    public static void getTimeMapForHall(ResultSet resultSet, TreeMap<Date, ArrayList<String>> timeMap) throws SQLException {
+    private static void getTimeMapForHall(ResultSet resultSet, TreeMap<Date, ArrayList<String>> timeMap) throws SQLException {
         while (resultSet.next()) {
             Date date = resultSet.getDate("date");
             String[] startTimeFull = resultSet.getTime("start_time").toString().split(":");
@@ -199,13 +230,4 @@ public class BookingService {
         }
     }
 
-
-    public static boolean isChamberExist(int chamber_num) throws SQLException {
-        sql = "SELECT count(*) FROM example.chamber WHERE number=?";
-        ps = connection.prepareStatement(sql);
-        ps.setInt(1, chamber_num);
-        ResultSet resultSet = ps.executeQuery();
-        return resultSet.getInt("count") != 0;
-
-    }
 }
