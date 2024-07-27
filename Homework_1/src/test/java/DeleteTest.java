@@ -61,12 +61,12 @@ public class DeleteTest {
     public void testDeleteWhenAuthorizedAndBookingsExist() {
 
         realUserManager.authorizing("a", "a");
-        realChamberManager.registerChambers();
+//        realChamberManager.registerChambers();
         User user = realUserManager.getUser();
         LocalDateTime date = LocalDateTime.now().plusDays(1);
         LocalDateTime endDate = date.plusDays(2);
         int chamberNum = 1;
-        realChamberManager.getChamberList().get(chamberNum).add(new Booking(user, date, endDate, chamberNum));
+//        realChamberManager.getChamberList().get(chamberNum).add(new Booking(user, date, endDate, chamberNum));
         assertThat(realUserManager.getUser().getBookingList().isEmpty()).isFalse();
 
         String input = "1\n";

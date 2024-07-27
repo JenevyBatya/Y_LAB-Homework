@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        logicalFilePath="test_db/changelog.xml">
+    <changeSet id="004-insert-data" author="gosha">
+        <insert tableName="user" schemaName="example">
+            <column name="id" value="1"/>
+            <column name="name" value="John"/>
+            <column name="surname" value="Doe"/>
+            <column name="email" value="john.doe@example.com"/>
+            <column name="phone_number" value="1234567890"/>
+            <column name="password" value="password1"/>
+        </insert>
+        <insert tableName="user" schemaName="example">
+            <column name="id" value="2"/>
+            <column name="name" value="Jane"/>
+            <column name="surname" value="Smith"/>
+            <column name="email" value="a"/>
+            <column name="phone_number" value="0987654321"/>
+            <column name="password" value="a"/>
+        </insert>
+
+        <!-- Предзаполнение таблицы администраторов -->
+        <insert tableName="admin" schemaName="example">
+            <column name="id" value="1"/>
+            <column name="user_id" value="1"/>
+        </insert>
+
+        <!-- Предзаполнение таблицы аудиторий -->
+        <insert tableName="chamber" schemaName="example">
+            <column name="id" value="1"/>
+            <column name="number" value="101"/>
+            <column name="name" value="Conference Room"/>
+            <column name="description" value="Large room with projector"/>
+            <column name="capacity" value="50"/>
+            <column name="type" value="HALL"/>
+        </insert>
+
+        <!-- Предзаполнение таблицы временных слотов -->
+        <insert tableName="time_slot" schemaName="example">
+            <column name="id" value="1"/>
+            <column name="date" value="2024-07-01"/>
+            <column name="hour" value="9"/>
+            <column name="chamber_id" value="1"/>
+            <column name="booked_slots" value="0"/>
+            <column name="total_slots" value="10"/>
+        </insert>
+
+        <!-- Предзаполнение таблицы бронирований -->
+        <insert tableName="booking" schemaName="example">
+            <column name="id" value="1"/>
+            <column name="user_id" value="2"/>
+            <column name="chamber_id" value="1"/>
+            <column name="start_date" value="2024-07-01"/>
+            <column name="end_date" value="2024-07-01"/>
+            <column name="start_time" value="09:00:00"/>
+            <column name="end_time" value="10:00:00"/>
+            <column name="is_coworking" value="true"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

@@ -26,16 +26,15 @@ public class CommandManagerTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        TestConnectionManager.registeringConnection();
     }
 
     @DisplayName("Проверка регистрации команд для пользователя")
     @Test
     public void testCommandManagerRegisterCommands() {
-        assertThat(commandManager.getCommandTable().isEmpty()).isTrue();
-        commandManager.registerChambers(mockChamberManager);
-        commandManager.registerCommands();
         assertThat(commandManager.getCommandTable().size()).isEqualTo(8);
     }
+
     @DisplayName("Проверка работы главного приложения на основе команды Help")
     @Test
     public void testCommandManagerRunHelp() {
@@ -52,10 +51,6 @@ public class CommandManagerTest {
 
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
-
-        assertThat(commandManager.getCommandTable().isEmpty()).isTrue();
-        commandManager.registerChambers(mockChamberManager);
-        commandManager.registerCommands();
         try {
             commandManager.run();
         } catch (NoSuchElementException e) {

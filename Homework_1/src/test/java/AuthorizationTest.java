@@ -23,18 +23,19 @@ public class AuthorizationTest {
 
     private final UserManager realUserManager = new UserManager();
 
+
     @InjectMocks
     private Authorization authorizationCommand;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        TestConnectionManager.registeringConnection();
     }
 
     @DisplayName("Проверка поведения команды, если пользователь не авторизован")
     @Test
     public void testAuthWhenNotAuthorized() {
-
         String input = "a\na\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
         BaseCommandAbs.setSc(new Scanner(System.in));
@@ -48,7 +49,7 @@ public class AuthorizationTest {
     @DisplayName("Проверка поведения команды, если пользователь авторизован")
     @Test
     public void testAuthWhenAuthorized() {
-        realUserManager.authorizing("b", "b");
+        realUserManager.authorizing("a", "a");
         authorizationCommand = new Authorization(mockChamberManager, realUserManager);
         ResultResponse result = authorizationCommand.action();
         assertThat(result).isNotNull();

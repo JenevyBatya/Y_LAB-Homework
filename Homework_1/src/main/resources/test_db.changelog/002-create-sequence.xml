@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        logicalFilePath="test_db/changelog.xml">
+    <changeSet id="add_sequence" author="gosha">
+        <createSequence sequenceName="global_test_id_seq" cycle="false" minValue="1" maxValue="9223372036854775807" startValue="1" incrementBy="1" schemaName="public"/>
+    </changeSet>
+</databaseChangeLog>
